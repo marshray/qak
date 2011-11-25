@@ -17,42 +17,51 @@
 //
 //=====================================================================================================================|
 //
-//	now__test.cxx
+//	optional__test.cxx
 
-#include "qak/now.hxx"
-
-#include <unistd.h> // usleep
+#include "qak/optional.hxx"
 
 namespace zzz { //=====================================================================================================|
 
 	void do_it()
 	{
 		{
-			usleep(1000);
-			int64_t t_ns = read_time_source(qak::time_source::wallclock_ns);
-			if (!(  1 < t_ns && t_ns < int64_t(10)*1000*1000*1000 )) throw 0;
+			qak::optional<int> oi;
+			if (!(  !oi  )) throw 0;
+
+			oi = 2;
+			if (!(  oi  )) throw 0;
+			if (!(  *oi == 2  )) throw 0;
 		} {
-			usleep(1000);
-			int64_t t_ns = read_time_source(qak::time_source::realtime_ns);
-			if (!(  1 < t_ns && t_ns < int64_t(10)*1000*1000*1000 )) throw 0;
+			qak::optional<int> oi = 2;
+			if (!(  oi  )) throw 0;
+			if (!(  *oi == 2  )) throw 0;
 		} {
-			usleep(1000);
-			int64_t t0_ns = read_time_source(qak::time_source::cpu_thread_ns);
-			if (!(  t0_ns )) throw 0;
-			usleep(1000);
-			int64_t t1_ns = read_time_source(qak::time_source::cpu_thread_ns);
-			if (!(  t0_ns != t1_ns )) throw 0;
+			qak::optional<int> oi0;
+			qak::optional<int> oi1;
+			if (!(  !oi0  )) throw 0;
+			if (!(  !oi1  )) throw 0;
+			std::swap(oi0, oi1);
+			if (!(  !oi0  )) throw 0;
+			if (!(  !oi1  )) throw 0;
+			oi0.swap(oi1);
+			if (!(  !oi0  )) throw 0;
+			if (!(  !oi1  )) throw 0;
 		} {
-			usleep(1000);
-			int64_t t0_cycles = read_time_source(qak::time_source::cpu_cycles);
-			if (!(  t0_cycles )) throw 0;
-			usleep(1000);
-			int64_t t1_cycles = read_time_source(qak::time_source::cpu_cycles);
-			if (!(  t0_cycles != t1_cycles )) throw 0;
+			qak::optional<int> oi0;
+			qak::optional<int> oi1 = 1;
+			if (!(  !oi0  )) throw 0;
+			if (!(  oi1 && 1 == *oi1 )) throw 0;
+			oi0.swap(oi1);
+			if (!(  oi0 && 1 == *oi0 )) throw 0;
+			if (!(  !oi1  )) throw 0;
+			oi0.swap(oi1);
+			if (!(  !oi0  )) throw 0;
+			if (!(  oi1 && 1 == *oi1 )) throw 0;
 		}
 	}
 
-} // namespace zzz ====================================================================================================|
+} // zzz ==============================================================================================================|
 
 	int main(int, char * [])
 	{

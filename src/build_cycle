@@ -38,9 +38,9 @@ if [[ ! -d "$QAK_BUILD_DIR" ]]; then
 fi
 echo "QAK_BUILD_DIR=$QAK_BUILD_DIR"
 
-BUILDIT_ERR=$QAK_BUILD_DIR/BUILDIT-err.txt
-BUILDIT_OUT_1=$QAK_BUILD_DIR/BUILDIT-out.1.txt
-BUILDIT_OUT_2=$QAK_BUILD_DIR/BUILDIT-out.2.txt
+BUILDIT_ERR=$QAK_BUILD_DIR/buildit-err.txt
+BUILDIT_OUT_1=$QAK_BUILD_DIR/buildit-out.1.txt
+BUILDIT_OUT_2=$QAK_BUILD_DIR/buildit-out.2.txt
 
 function buildit
 {
@@ -53,7 +53,7 @@ function buildit
 	fi
 	cd "$QAK_BUILD_DIR" || exit 1
 
-	$QAK_SRC_DIR/build --no-test 2>&1 >$BUILDIT_OUT_1 || cp $BUILDIT_OUT_1 $BUILDIT_ERR
+	$QAK_SRC_DIR/build --no-no-test 2>&1 >$BUILDIT_OUT_1 || cp $BUILDIT_OUT_1 $BUILDIT_ERR
 
 	cp $BUILDIT_OUT_1 $BUILDIT_OUT_2
 

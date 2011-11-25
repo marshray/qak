@@ -17,38 +17,32 @@
 //
 //=====================================================================================================================|
 //
-//	now__test.cxx
+//	mutex__test.cxx
 
-#include "qak/now.hxx"
-
-#include <unistd.h> // usleep
+#include "qak/mutex.hxx"
 
 namespace zzz { //=====================================================================================================|
 
 	void do_it()
 	{
 		{
-			usleep(1000);
-			int64_t t_ns = read_time_source(qak::time_source::wallclock_ns);
-			if (!(  1 < t_ns && t_ns < int64_t(10)*1000*1000*1000 )) throw 0;
+			qak::mutex mut;
 		} {
-			usleep(1000);
-			int64_t t_ns = read_time_source(qak::time_source::realtime_ns);
-			if (!(  1 < t_ns && t_ns < int64_t(10)*1000*1000*1000 )) throw 0;
+			qak::mutex mut;
+			qak::mutex_lock lock(mut);
+			if (!(  lock.is_locking(mut)  )) throw 0;
 		} {
-			usleep(1000);
-			int64_t t0_ns = read_time_source(qak::time_source::cpu_thread_ns);
-			if (!(  t0_ns )) throw 0;
-			usleep(1000);
-			int64_t t1_ns = read_time_source(qak::time_source::cpu_thread_ns);
-			if (!(  t0_ns != t1_ns )) throw 0;
+			qak::mutex mut;
+			qak::mutex_lock lock = mut.lock();
+			if (!(  lock.is_locking(mut)  )) throw 0;
+
+			qak::optional<qak::mutex_lock> opt_lock = mut.try_lock();
+			if (!(  !opt_lock  )) throw 0;
 		} {
-			usleep(1000);
-			int64_t t0_cycles = read_time_source(qak::time_source::cpu_cycles);
-			if (!(  t0_cycles )) throw 0;
-			usleep(1000);
-			int64_t t1_cycles = read_time_source(qak::time_source::cpu_cycles);
-			if (!(  t0_cycles != t1_cycles )) throw 0;
+			qak::mutex mut;
+			qak::optional<qak::mutex_lock> opt_lock = mut.try_lock();
+			if (!(  opt_lock  )) throw 0;
+			if (!(  opt_lock->is_locking(mut)  )) throw 0;
 		}
 	}
 

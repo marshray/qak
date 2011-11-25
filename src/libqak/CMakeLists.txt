@@ -20,7 +20,9 @@ include_directories(BEFORE ../include)
 
 add_library( qak STATIC
 	atomic.cxx
+	mutex.cxx
 	now.cxx
+	stopwatch.cxx
 )
 
 target_link_libraries( qak
@@ -30,6 +32,18 @@ add_executable(atomic__test atomic__test.cxx)
 target_link_libraries(atomic__test qak)
 add_test(atomic__test ${EXECUTABLE_OUTPUT_PATH}/atomic__test)
 
+add_executable(mutex__test mutex__test.cxx)
+target_link_libraries(mutex__test qak)
+add_test(mutex__test ${EXECUTABLE_OUTPUT_PATH}/mutex__test)
+
 add_executable(now__test now__test.cxx)
 target_link_libraries(now__test qak)
 add_test(now__test ${EXECUTABLE_OUTPUT_PATH}/now__test)
+
+add_executable(optional__test optional__test.cxx)
+target_link_libraries(optional__test qak)
+add_test(optional__test ${EXECUTABLE_OUTPUT_PATH}/optional__test)
+
+add_executable(stopwatch__test stopwatch__test.cxx)
+target_link_libraries(stopwatch__test qak)
+add_test(stopwatch__test ${EXECUTABLE_OUTPUT_PATH}/stopwatch__test)

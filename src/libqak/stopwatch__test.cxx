@@ -17,9 +17,9 @@
 //
 //=====================================================================================================================|
 //
-//	now__test.cxx
+//	stopwatch__test.cxx
 
-#include "qak/now.hxx"
+#include "qak/stopwatch.hxx"
 
 #include <unistd.h> // usleep
 
@@ -28,27 +28,10 @@ namespace zzz { //==============================================================
 	void do_it()
 	{
 		{
-			usleep(1000);
-			int64_t t_ns = read_time_source(qak::time_source::wallclock_ns);
-			if (!(  1 < t_ns && t_ns < int64_t(10)*1000*1000*1000 )) throw 0;
+			qak::stopwatch sw;
+			::usleep(1000);
+			if (!( 0.0 < sw.elapsed_s() )) throw 0;
 		} {
-			usleep(1000);
-			int64_t t_ns = read_time_source(qak::time_source::realtime_ns);
-			if (!(  1 < t_ns && t_ns < int64_t(10)*1000*1000*1000 )) throw 0;
-		} {
-			usleep(1000);
-			int64_t t0_ns = read_time_source(qak::time_source::cpu_thread_ns);
-			if (!(  t0_ns )) throw 0;
-			usleep(1000);
-			int64_t t1_ns = read_time_source(qak::time_source::cpu_thread_ns);
-			if (!(  t0_ns != t1_ns )) throw 0;
-		} {
-			usleep(1000);
-			int64_t t0_cycles = read_time_source(qak::time_source::cpu_cycles);
-			if (!(  t0_cycles )) throw 0;
-			usleep(1000);
-			int64_t t1_cycles = read_time_source(qak::time_source::cpu_cycles);
-			if (!(  t0_cycles != t1_cycles )) throw 0;
 		}
 	}
 

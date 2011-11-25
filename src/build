@@ -41,14 +41,12 @@ export QAK_SRC_DIR
 #		./clean_cmake --release
 #		./clean_cmake --profile
 #
-if [[ "$1" == "--no-test" || "$1" == "--debug" ]]; then # default is --debug
-	QAK_BUILD_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build-debug"
-elif [[ "$1" == "--release" ]]; then
+if [[ "$1" == "--release" ]]; then
 	QAK_BUILD_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build-release"
 elif [[ "$1" == "--profile" ]]; then
 	QAK_BUILD_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build-profile"
-else
-	exit 1
+else # default is --debug
+	QAK_BUILD_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build-debug"
 fi
 echo "QAK_BUILD_DIR=$QAK_BUILD_DIR"
 
