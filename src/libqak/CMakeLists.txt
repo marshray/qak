@@ -47,3 +47,7 @@ add_test(optional__test ${EXECUTABLE_OUTPUT_PATH}/optional__test)
 add_executable(stopwatch__test stopwatch__test.cxx)
 target_link_libraries(stopwatch__test qak)
 add_test(stopwatch__test ${EXECUTABLE_OUTPUT_PATH}/stopwatch__test)
+
+add_executable(vector__test vector__test.cxx)
+target_link_libraries(vector__test qak)
+add_test(vector__test ${EXECUTABLE_OUTPUT_PATH}/vector__test)
