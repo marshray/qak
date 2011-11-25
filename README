@@ -5,3 +5,124 @@ Some C++ code I find useful and wanted to release under a permissive license.
 Pronounce 'kak'. All of the good short names are taken or, if not, this project
 is not yet deserving enough to take one of them.
 
+I experiment with C++11, crypto, and interactve applications with OpenGL. Perhaps
+a simple game or utility application will come of it someday, but in the meantime
+some of the code is reusable and might be generally useful to others.
+
+Qak is also an experiment with reducing compilation times and using smaller,
+minimal-dependency headers. For example, a simple #include <vector> with libstdc++
+drags in over 10000 non-blank non-comment lines of C++ code. (Gcc's precompiled header
+support can help with compilation time considerably, but it still accumulates
+large internal data structures that seem to reduce compile times.) Following the
+80/20 rule, a qak::vector<> class that trades features and performance for
+simplicity requires only a few hundred lines of code. I typically don't use
+vector's allocator support anyway.
+
+At the current time, the toolset used for development is:
+
+	g++ 4.6.2
+	libstdc++ 6.0.16
+	cmake 2.8.0
+	Linux 2.6.32-35 x86_64 AKA amd64 AKA x64
+	Ubuntu 10.04 LTS _Lucid Lynx_ - Release amd64 (20100429)
+
+Misc coding practices:
+
+	C++ source files are named .cxx and .hxx
+	4 space tabs
+	Soft 120 column margin
+	External interface headers go in src/include/qak
+	Implementation sources go in     src/libqak
+	Unit test apps are named *__test
+
+	C++11 (aka C++0x) features are adopted as they become available in g++.
+
+Headers from the standard library, annotated with the lines of dependency c++ headers
+and the total LoC.
+
+Include these freely and assume they are already needed and impose no additional cost:
+
+	#include <cstdint> // 4 1309 std::uintN_t
+	#include <cassert> // 1 36
+	#include <type_traits> // 4 2260 std::aligned_storage, is_integral, enable_if
+	#include <new> // 8 1766 placement new
+	#include <utility> // 10 2999 std::swap
+
+These are 'allowed' anywhere, but assume they have some cost.
+
+	#include <ciso646> 1 29
+	#include <cassert> 1 36
+	#include <cerrno> 1 42
+	#include <climits> 1 47
+	#include <cfloat> 1 49
+	#include <cstdbool> 4 1259
+	#include <cstddef> 4 1261
+	#include <csignal> 4 1272
+	#include <cstdarg> 4 1272
+	#include <clocale> 4 1273
+	#include <csetjmp> 4 1275
+	#include <ctime> 4 1289
+	#include <cctype> 4 1303
+	#include <initializer_list> 4 1309
+	#include <cwctype> 4 1329
+	#include <cstring> 4 1331
+	#include <cfenv> 5 1353
+	#include <cinttypes> 5 1375
+	#include <cstdio> 4 1391
+	#include <cstdlib> 4 1438
+	#include <cwchar> 4 1494
+	#include <exception> 7 1673
+	#include <typeinfo> 9 1910
+
+	#include <cmath> 6 3094
+	#include <functional> 23 7416
+
+Avoid these, except perhaps confined to a single translation designed to
+re-expose their functionality via its own smaller header.
+
+	#include <iosfwd> 7 1926
+	#include <typeindex> 10 1993
+	#include <limits> 4 2514
+	#include <ratio> 6 2663
+	#include <ctgmath> 7 3125
+	#include <numeric> 10 3161
+	#include <atomic> 7 3360
+	#include <tuple> 11 3671
+	#include <chrono> 9 4623
+	#include <array> 19 6293
+	#include <list> 29 8941
+	#include <unordered_set> 36 10523
+	#include <deque> 31 10530
+	#include <unordered_map> 36 10533
+	#include <set> 32 10591
+	#include <vector> 34 10798
+	#include <stack> 33 10849
+	#include <map> 32 10864
+	#include <string> 53 15158
+	#include <stdexcept> 54 15288
+	#include <queue> 42 15493
+	#include <system_error> 56 15721
+	#include <memory> 52 16470
+	#include <bitset> 54 16526
+	#include <streambuf> 58 17821
+	#include <forward_list> 56 18208
+	#include <mutex> 66 21737
+	#include <condition_variable> 67 21952
+	#include <ios> 67 22606
+	#include <ostream> 69 23511
+	#include <istream> 71 25314
+	#include <iostream> 72 25379
+	#include <iterator> 73 25560
+	#include <locale> 71 25670
+	#include <iomanip> 72 25961
+	#include <thread> 78 25999
+	#include <sstream> 73 26091
+	#include <fstream> 76 27584
+	#include <random> 66 28953
+	#include <complex> 75 29079
+	#include <ccomplex> 76 29112
+	#include <future> 83 29280
+	#include <algorithm> 76 39274
+	#include <valarray> 86 43120
+	#include <regex> 133 69039
+

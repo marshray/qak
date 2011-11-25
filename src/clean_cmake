@@ -1,0 +1,127 @@
+#!/bin/bash
+#=================================================================================================|
+#
+#   Copyright (c) 2011, Marsh Ray
+#
+#   Permission to use, copy, modify, and/or distribute this software for any
+#   purpose with or without fee is hereby granted, provided that the above
+#   copyright notice and this permission notice appear in all copies.
+#
+#   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+#   WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+#   MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+#   ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+#   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+#   ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+#   OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+#=================================================================================================|
+
+set -o errexit
+#set -o xtrace
+
+#	Specify the compiler to use.
+#
+GCC_VER=4.6.2
+GCC_PLATFORM=x86_64-linux-gnu
+C_COMPILER=gcc-$GCC_VER
+CXX_COMPILER=g++-$GCC_VER
+
+#	You can specify the qak/src directory in the environment variable QAK_SRC_DIR,
+#	or this script will try to figure it out from its own location.
+
+THIS_SCRIPT=$(readlink -n -f "$0")
+echo "THIS_SCRIPT=$THIS_SCRIPT"
+
+THIS_SCRIPT_DIR=$(dirname "$THIS_SCRIPT")
+echo "THIS_SCRIPT_DIR=$THIS_SCRIPT_DIR"
+
+if [[ ! -d "$QAK_SRC_DIR" ]]; then QAK_SRC_DIR=$(dirname "$THIS_SCRIPT"); fi
+export QAK_SRC_DIR
+
+echo "QAK_SRC_DIR=$QAK_SRC_DIR"
+
+
+#	Command-line options.
+#
+#	For example:
+#		./clean_cmake
+#		./clean_cmake --release
+#		./clean_cmake --profile
+#
+if [[ "$1" == "" || "$1" == "--debug" ]]; then # default is --debug build
+	BUILD_TYPE=Debug
+	QAK_BUILD_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build-debug"
+elif [[ "$1" == "--release" ]]; then
+	BUILD_TYPE=Release
+	QAK_BUILD_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build-release"
+elif [[ "$1" == "--profile" ]]; then
+	BUILD_TYPE=Release
+	PROFILE=1
+	QAK_BUILD_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build-profile"
+else
+	exit 1
+fi
+
+echo "QAK_BUILD_DIR=$QAK_BUILD_DIR"
+
+#
+#	Validate env vars and set derived paths.
+#
+
+if [[ ! -d "$QAK_SRC_DIR" ]]; then echo "No usable QAK_SRC_DIR"; exit 1; fi
+
+find "$QAK_SRC_DIR" -type f -name 'cmake_install.cmake' -exec rm \{\} \;
+find "$QAK_SRC_DIR" -type f -name 'CMakeCache.txt' -exec rm \{\} \;
+find "$QAK_SRC_DIR" -type d -name 'CMakeFiles' -exec rm -rf \{\} \;
+
+if [[ -d "$QAK_BUILD_DIR" ]]; then
+	set -o xtrace
+	rm -rf "$QAK_BUILD_DIR"
+	set +o xtrace
+fi
+set -o xtrace
+mkdir -p "$QAK_BUILD_DIR"
+cd "$QAK_BUILD_DIR"
+set +o xtrace
+
+
+#	-std=c++0x is to use newer language features.
+#
+#	-Wno-invalid-offsetof is for libnrcgc, which takes one or two mild liberties with the
+#	layout of non-PODs.
+#
+C_CXX_FLAGS="-ggdb3 -pthread -D_POSIX_PTHREAD_SEMANTICS -D_REENTRANT"   # -Wno-invalid-offsetof -Wno-deprecated
+CXXFLAGS="-std=c++0x"
+if [[ "$BUILD_TYPE" == "Debug" ]]; then
+	C_CXX_FLAGS="$C_CXX_FLAGS -O0 -fno-inline"
+	#	Enable GNU libstdc++ debugging
+	CXXFLAGS="$CXXFLAGS -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC"
+
+elif [[ "$BUILD_TYPE" == "Release" ]]; then
+	if [[ "$PROFILE" == "1" ]]; then
+		#C_CXX_FLAGS="$C_CXX_FLAGS -mtune=pentium -mfpmath=387 -mno-mmx -mno-sse -mno-sse2 -mno-sse3"
+		#C_CXX_FLAGS="$C_CXX_FLAGS -mtune=generic -mfpmath=387 -mno-mmx -mno-sse -mno-sse2 -mno-sse3"
+		C_CXX_FLAGS="$C_CXX_FLAGS -mtune=generic -mfpmath=387 -mno-sse2 -mno-sse3"
+	else
+		C_CXX_FLAGS="$C_CXX_FLAGS"
+	fi
+fi
+CFLAGS="$C_CXX_FLAGS $CFLAGS"
+CXXFLAGS="$C_CXX_FLAGS $CXXFLAGS"
+export CFLAGS CXXFLAGS
+
+declare -x GLIBCXX_DEBUG_MESSAGE_LENGTH=120
+
+cmake -Wdev \
+-DCMAKE_VERBOSE_MAKEFILE=true \
+-DCMAKE_C_COMPILER=$C_COMPILER \
+-DCMAKE_CXX_COMPILER=$CXX_COMPILER \
+-DQAK_SRC_DIR="$QAK_SRC_DIR" \
+-DCMAKE_BUILD_TYPE="$BUILD_TYPE" "$QAK_SRC_DIR"
+
+make
+
+export CTEST_OUTPUT_ON_FAILURE=1
+make test
+
