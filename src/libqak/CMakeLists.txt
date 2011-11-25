@@ -20,11 +20,16 @@ include_directories(BEFORE ../include)
 
 add_library( qak STATIC
 	atomic.cxx
+	now.cxx
 )
 
-#target_link_libraries( qak
-#	rt ) # for clock_gettime used in now.cxx
+target_link_libraries( qak
+	rt ) # for clock_gettime used in now.cxx
 
 add_executable(atomic__test atomic__test.cxx)
 target_link_libraries(atomic__test qak)
 add_test(atomic__test ${EXECUTABLE_OUTPUT_PATH}/atomic__test)
+
+add_executable(now__test now__test.cxx)
+target_link_libraries(now__test qak)
+add_test(now__test ${EXECUTABLE_OUTPUT_PATH}/now__test)

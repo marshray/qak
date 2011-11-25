@@ -37,9 +37,8 @@ THIS_SCRIPT_DIR=$(dirname "$THIS_SCRIPT")
 echo "THIS_SCRIPT_DIR=$THIS_SCRIPT_DIR"
 
 if [[ ! -d "$QAK_SRC_DIR" ]]; then QAK_SRC_DIR=$(dirname "$THIS_SCRIPT"); fi
-export QAK_SRC_DIR
-
 echo "QAK_SRC_DIR=$QAK_SRC_DIR"
+export QAK_SRC_DIR
 
 
 #	Command-line options.

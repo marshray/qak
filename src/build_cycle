@@ -1,0 +1,71 @@
+#!/bin/bash
+#=================================================================================================|
+#
+#   Copyright (c) 2011, Marsh Ray
+#
+#   Permission to use, copy, modify, and/or distribute this software for any
+#   purpose with or without fee is hereby granted, provided that the above
+#   copyright notice and this permission notice appear in all copies.
+#
+#   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+#   WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+#   MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+#   ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+#   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+#   ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+#   OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+#=================================================================================================|
+
+set -o errexit
+#set -o xtrace
+
+#	You can specify the qak/src directory in the environment variable QAK_SRC_DIR,
+#	or this script will try to figure it out from its own location.
+
+THIS_SCRIPT=$(readlink -n -f "$0")
+echo "THIS_SCRIPT=$THIS_SCRIPT"
+
+THIS_SCRIPT_DIR=$(dirname "$THIS_SCRIPT")
+echo "THIS_SCRIPT_DIR=$THIS_SCRIPT_DIR"
+
+if [[ ! -d "$QAK_SRC_DIR" ]]; then QAK_SRC_DIR=$(dirname "$THIS_SCRIPT"); fi
+echo "QAK_SRC_DIR=$QAK_SRC_DIR"
+export QAK_SRC_DIR
+
+if [[ ! -d "$QAK_BUILD_DIR" ]]; then
+	QAK_BUILD_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build-debug"
+fi
+echo "QAK_BUILD_DIR=$QAK_BUILD_DIR"
+
+BUILDIT_ERR=$QAK_BUILD_DIR/BUILDIT-err.txt
+BUILDIT_OUT_1=$QAK_BUILD_DIR/BUILDIT-out.1.txt
+BUILDIT_OUT_2=$QAK_BUILD_DIR/BUILDIT-out.2.txt
+
+function buildit
+{
+	echo "Building..."
+
+	rm $BUILDIT_OUT_1 $BUILDIT_ERR >>/dev/null 2>&1 || true
+
+	if [[ ! -d "$QAK_BUILD_DIR" ]]; then
+		mkdir -p "$QAK_BUILD_DIR"
+	fi
+	cd "$QAK_BUILD_DIR" || exit 1
+
+	$QAK_SRC_DIR/build --no-test 2>&1 >$BUILDIT_OUT_1 || cp $BUILDIT_OUT_1 $BUILDIT_ERR
+
+	cp $BUILDIT_OUT_1 $BUILDIT_OUT_2
+
+	cat $BUILDIT_OUT_2
+
+	if [[ ! -e $BUILDIT_ERR ]]; then return 0; else return 1; fi
+}
+
+while true; do
+	buildit && echo -n '---- build successful :-) ----' || echo '**** build failed :-P ****'
+	if inotifywait -r -e modify "$QAK_SRC_DIR" >>/dev/null 2>&1 ; then
+		echo -e '\nChange detected!'
+		sleep 1
+	fi
+done

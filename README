@@ -1,4 +1,7 @@
+
+
 Qak
+
 by Marsh Ray <marsh@extendedsubet.com>
 
 Some C++ code I find useful and wanted to release under a permissive license.
@@ -29,11 +32,13 @@ At the current time, the toolset used for development is:
 Misc coding practices:
 
 	C++ source files are named .cxx and .hxx
-	4 space tabs
-	Soft 120 column margin
 	External interface headers go in src/include/qak
 	Implementation sources go in     src/libqak
+
 	Unit test apps are named *__test
+
+	4 space tabs
+	Soft 120 column margin
 
 	C++11 (aka C++0x) features are adopted as they become available in g++.
 

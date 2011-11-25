@@ -1,0 +1,68 @@
+#!/bin/bash
+#=================================================================================================|
+#
+#   Copyright (c) 2011, Marsh Ray
+#
+#   Permission to use, copy, modify, and/or distribute this software for any
+#   purpose with or without fee is hereby granted, provided that the above
+#   copyright notice and this permission notice appear in all copies.
+#
+#   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+#   WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+#   MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+#   ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+#   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+#   ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+#   OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+#=================================================================================================|
+
+set -o errexit
+#set -o xtrace
+
+#	You can specify the qak/src directory in the environment variable QAK_SRC_DIR,
+#	or this script will try to figure it out from its own location.
+
+THIS_SCRIPT=$(readlink -n -f "$0")
+echo "THIS_SCRIPT=$THIS_SCRIPT"
+
+THIS_SCRIPT_DIR=$(dirname "$THIS_SCRIPT")
+echo "THIS_SCRIPT_DIR=$THIS_SCRIPT_DIR"
+
+if [[ ! -d "$QAK_SRC_DIR" ]]; then QAK_SRC_DIR=$(dirname "$THIS_SCRIPT"); fi
+echo "QAK_SRC_DIR=$QAK_SRC_DIR"
+export QAK_SRC_DIR
+
+
+#	Command-line options.
+#
+#	For example:
+#		./clean_cmake
+#		./clean_cmake --release
+#		./clean_cmake --profile
+#
+if [[ "$1" == "--no-test" || "$1" == "--debug" ]]; then # default is --debug
+	QAK_BUILD_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build-debug"
+elif [[ "$1" == "--release" ]]; then
+	QAK_BUILD_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build-release"
+elif [[ "$1" == "--profile" ]]; then
+	QAK_BUILD_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build-profile"
+else
+	exit 1
+fi
+echo "QAK_BUILD_DIR=$QAK_BUILD_DIR"
+
+SUCCESS_FLAG=$QAK_BUILD_DIR/success.out
+if [[ -f "$SUCCESS_FLAG" ]]; then rm "$SUCCESS_FLAG"; fi
+
+(make -C "$QAK_BUILD_DIR" && touch "$SUCCESS_FLAG")\
+|& grep -v 'In file included from'
+#	Vim doesn't handle ^^^ this one error message format well currently.
+
+if [[ ! -f "$SUCCESS_FLAG" ]]; then
+	exit 1
+fi
+if [[ x$1 != x--no-test && x$2 != x--no-test ]]; then
+	export CTEST_OUTPUT_ON_FAILURE=1
+	make -C "$QAK_BUILD_DIR" test
+fi

@@ -1,7 +1,7 @@
 // vim: set ts=4 sw=4 tw=120:
 //=====================================================================================================================|
 //
-//	(c) 2011, Marsh Ray
+//	Copyright (c) 2011, Marsh Ray
 //
 //	Permission to use, copy, modify, and/or distribute this software for any
 //	purpose with or without fee is hereby granted, provided that the above
