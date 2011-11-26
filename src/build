@@ -62,5 +62,5 @@ if [[ ! -f "$SUCCESS_FLAG" ]]; then
 fi
 if [[ x$1 != x--no-test && x$2 != x--no-test ]]; then
 	export CTEST_OUTPUT_ON_FAILURE=1
-	make -C "$QAK_BUILD_DIR" test
+	nice -n 10 make -C "$QAK_BUILD_DIR" test
 fi

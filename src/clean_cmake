@@ -91,6 +91,7 @@ set +o xtrace
 #	layout of non-PODs.
 #
 C_CXX_FLAGS="-ggdb3 -pthread -D_POSIX_PTHREAD_SEMANTICS -D_REENTRANT"   # -Wno-invalid-offsetof -Wno-deprecated
+C_CXX_FLAGS="$C_CXX_FLAGS -Wall"
 CXXFLAGS="-std=c++0x"
 if [[ "$BUILD_TYPE" == "Debug" ]]; then
 	C_CXX_FLAGS="$C_CXX_FLAGS -O0 -fno-inline"

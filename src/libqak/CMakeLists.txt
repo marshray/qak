@@ -32,6 +32,10 @@ add_executable(atomic__test atomic__test.cxx)
 target_link_libraries(atomic__test qak)
 add_test(atomic__test ${EXECUTABLE_OUTPUT_PATH}/atomic__test)
 
+add_executable(min_max__test min_max__test.cxx)
+target_link_libraries(min_max__test qak)
+add_test(min_max__test ${EXECUTABLE_OUTPUT_PATH}/min_max__test)
+
 add_executable(mutex__test mutex__test.cxx)
 target_link_libraries(mutex__test qak)
 add_test(mutex__test ${EXECUTABLE_OUTPUT_PATH}/mutex__test)

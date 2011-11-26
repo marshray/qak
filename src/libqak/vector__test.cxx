@@ -60,6 +60,21 @@ namespace zzz { //==============================================================
 			if (!(   v.size() == 2000   )) throw 0;
 			for (unsigned n = 0; n < 2000; ++n)
 				if (!(   v[n] == n   )) throw 0;
+		} {
+			qak::vector<unsigned> v(std::size_t(1), 1u);
+			for (unsigned n = 0; n < 2000; ++n)
+				v.push_back( v[ n%v.size() ] );
+		} {
+			qak::vector<unsigned> v(std::size_t(1), 1u);
+			for (unsigned n = 0; n < 2000; ++n)
+				v.push_back( v[ n%v.size() ] );
+			for (unsigned n = 0; n < 2001; ++n)
+				if (!(   v[n] == 1   )) throw 0;
+		} {
+			qak::vector<unsigned> v(std::size_t(1000), 1u);
+			for (unsigned n = 0; n < 1000; ++n) if (!(   v[n] == 1   )) throw 0;
+			qak::vector<unsigned> u(std::move(v));
+			for (unsigned n = 0; n < 1000; ++n) if (!(   u[n] == 1   )) throw 0;
 		}
 	}
 

@@ -81,13 +81,13 @@ These are 'allowed' anywhere, but assume they have some cost.
 
 	#include <cmath> 6 3094
 	#include <functional> 23 7416
+	#include <limits> 4 2514
 
 Avoid these, except perhaps confined to a single translation designed to
 re-expose their functionality via its own smaller header.
 
 	#include <iosfwd> 7 1926
 	#include <typeindex> 10 1993
-	#include <limits> 4 2514
 	#include <ratio> 6 2663
 	#include <ctgmath> 7 3125
 	#include <numeric> 10 3161

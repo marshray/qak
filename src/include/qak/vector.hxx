@@ -25,11 +25,20 @@
 #include <cassert>
 #include <cstdint>
 #include <initializer_list>
+#include <limits> // std::numeric_limits
 #include <new>
 #include <type_traits> // std::aligned_storage
+#include <utility> // std::move
+
+#include "qak/min_max.hxx"
 
 namespace qak { //=====================================================================================================|
 
+	//	Although this class superficially resembles an std::vector, it's really intended to be something closer to a
+	//	dumb dynamic array. Its correctness guarantees are relaxed whenever it makes things simpler. For example,
+	//	methods typically do not attempt to offer exception safety guarantees beyond what falls out naturally from
+	//	a straightforward implementation of their functionality.
+	//
 	template <class T> // no allocator support
 	struct vector
 	{
@@ -40,7 +49,7 @@ namespace qak { //==============================================================
 		typedef value_type const * const_pointer;
 
 		typedef value_type & reference;
-		typedef const value_type & const_reference;
+		typedef value_type const & const_reference;
 
 		typedef pointer iterator;
 		typedef const_pointer const_iterator;
@@ -74,31 +83,48 @@ namespace qak { //==============================================================
 			size_type n
 		) :
 			b_(make_new_storage(n)),
-			e_(b_ + n),
-			z_(e_)
+			e_(b_),
+			z_(b_ + n)
 		{
 			for (size_type ix = 0; ix < n; ++ix)
-				new (&b_[ix]) value_type();
+			{
+				new (e_) value_type();
+				++e_;
+			}
+		}
+
+		vector(size_type n, T const & val) :
+			b_(make_new_storage(n)),
+			e_(b_),
+			z_(b_ + n)
+		{
+			for (size_type ix = 0; ix < n; ++ix)
+			{
+				new (e_) value_type(val);
+				++e_;
+			}
 		}
 
 		template <class InputIterator>
 		vector(InputIterator first, InputIterator last) :
 			b_(0), e_(0), z_(0)
 		{
-			vector<T> that;
-			that.assign(first, last);
-			this->swap(that);
+			for (InputIterator it = first; it != last; ++it)
+				this->push_back(*it);
 		}
 
 		explicit vector(
 			vector<T> const & that
 		) :
 			b_(make_new_storage(that.size())),
-			e_(b_ + that.size()),
-			z_(e_)
+			e_(b_),
+			z_(b_ + that.size())
 		{
 			for (size_type ix = 0; ix < that.size(); ++ix)
-				new (&b_[ix]) value_type(that[ix]);
+			{
+				new (e_) value_type(that[ix]);
+				++e_;
+			}
 		}
 
 		vector(vector<T> && that) :
@@ -115,9 +141,10 @@ namespace qak { //==============================================================
 
 		~vector()
 		{
+			//	Mamas don't let exceptions propagate out yer destructors.
 			for (size_type ix = 0; ix < this->size(); ++ix)
 				b_[ix].~value_type();
-			delete reinterpret_cast<storage_type_ *>(b_);
+			delete [] reinterpret_cast<storage_type_ *>(b_);
 		}
 
 		//?vector<T> & operator = (vector<T> const & x);
@@ -136,7 +163,33 @@ namespace qak { //==============================================================
 				this->resize(ix);
 		}
 
-		//?void assign(size_type n, const T & u);
+		void assign(size_type n, T const & val)
+		{
+			if (b_ <= &val && &val < e_)
+			{
+				//	Special case where T is ref to existing contained sequence.
+				T tmp(val);
+				this->assign(n, val);
+			}
+			else
+			{
+				if (this->capacity() < n) // we need to grow
+				{
+					vector<T> that(n, val);
+					this->swap(that);
+				}
+				else // not growing capacity, but possibly growing size
+				{
+					this->resize(n);
+					size_type cnt_assign = qak::min<size_type>(this->size(), n);
+					for (size_type ix = 0; ix < cnt_assign; ++ix) b_[ix] = val;
+					for (size_type ix = cnt_assign; ix < n; ++ix, ++e_) new (&b_[ix]) value_type(val);
+				}
+			}
+
+			assert(this->size() == n);
+		}
+
 		//?void assign(std::initializer_list<T> il);
 
 		iterator begin() noexcept { return b_; }
@@ -161,7 +214,7 @@ namespace qak { //==============================================================
 
 		constexpr size_type max_size()
 		{
-			return size_type(-1);
+			return std::numeric_limits<difference_type>::max();
 		}
 
 		void resize(size_type sz)
@@ -172,9 +225,13 @@ namespace qak { //==============================================================
 					clear();
 				else
 				{
-					for (size_type ix = sz; ix < this->size(); ++ix)
+					for (size_type ix = this->size(); sz <= ix; --ix)
+					{
+						// If dtor throws, we're at least consistent with the remaining elements.
+						--e_;
 						b_[ix].~value_type();
-					e_ = b_ + sz;
+					}
+					assert(e_ == b_ + sz);
 				}
 			}
 			else if (size() < sz) // growing
@@ -182,8 +239,12 @@ namespace qak { //==============================================================
 				if (sz <= capacity()) // growing within capacity
 				{
 					for (size_type ix = size(); ix < sz; ++ix)
+					{
 						new (&b_[ix]) value_type();
-					e_ = b_ + sz;
+						// If ctor throws, we're at least consistent with the remaining elements.
+						++e_;
+					}
+					assert(e_ == b_ + sz);
 				}
 				else // need more allocation
 				{
@@ -211,7 +272,7 @@ namespace qak { //==============================================================
 			{
 				if (this->empty())
 				{
-					delete b_;
+					delete [] b_;
 					b_ = make_new_storage(sz);
 					e_ = b_;
 					z_ = b_ + sz;
@@ -292,18 +353,36 @@ namespace qak { //==============================================================
 
 		void push_back(const T & val)
 		{
-			if (!(e_ < z_))
-				this->reserve(1 + 3*capacity()/2);
-			new (e_) value_type(val);
-			++e_;
+			if (b_ <= &val && &val < e_)
+			{
+				//	Special case where T is ref to existing contained sequence.
+				T tmp(val);
+				this->push_back(tmp);
+			}
+			else
+			{
+				if (!(e_ < z_))
+					this->reserve(1 + 3*capacity()/2);
+				new (e_) value_type(val);
+				++e_;
+			}
 		}
 
 		void push_back(T && val)
 		{
-			if (!(e_ < z_))
-				this->reserve(1 + 3*capacity()/2);
-			new (e_) value_type(val);
-			++e_;
+			if (b_ <= &val && &val < e_)
+			{
+				//	Special case where T is rvref to existing contained sequence.
+				T tmp(val);
+				this->push_back(std::move(tmp));
+			}
+			else
+			{
+				if (!(e_ < z_))
+					this->reserve(1 + 3*capacity()/2);
+				new (e_) value_type(val);
+				++e_;
+			}
 		}
 
 		void pop_back()
@@ -314,9 +393,9 @@ namespace qak { //==============================================================
 		}
 
 		//?template <class... Args> iterator emplace(const_iterator position, Args &&... args);
-		//?iterator insert(const_iterator position, const T & val);
+		//?iterator insert(const_iterator position, T const & val);
 		//?iterator insert(const_iterator position, T && val);
-		//?iterator insert(const_iterator position, size_type n, const T& val);
+		//?iterator insert(const_iterator position, size_type n, T const & val);
 		//?template <class InputIterator> iterator insert(const_iterator position, InputIterator first, InputIterator last);
 		//?iterator insert(const_iterator position, initializer_list<T> il);
 		//?iterator erase(const_iterator position);
@@ -333,7 +412,7 @@ namespace qak { //==============================================================
 		{
 			for (size_type ix = 0; ix < this->size(); ++ix)
 				b_[ix].~value_type();
-			delete reinterpret_cast<storage_type_ *>(b_);
+			delete [] reinterpret_cast<storage_type_ *>(b_);
 			b_ = e_ = z_ = 0;
 		}
 	};

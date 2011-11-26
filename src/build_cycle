@@ -63,7 +63,7 @@ function buildit
 }
 
 while true; do
-	buildit && echo -n '---- build successful :-) ----' || echo '**** build failed :-P ****'
+	buildit && echo -n ':-) ---- build successful ----' || echo ':-P **** build failed ****'
 	if inotifywait -r -e modify "$QAK_SRC_DIR" >>/dev/null 2>&1 ; then
 		echo -e '\nChange detected!'
 		sleep 1
