@@ -23,6 +23,11 @@
 
 #include <unistd.h> // usleep
 
+#include "qak/fail.hxx"
+
+using qak::throw_if;
+using qak::throw_unless;
+
 namespace zzz { //=====================================================================================================|
 
 	void do_it()
@@ -30,7 +35,7 @@ namespace zzz { //==============================================================
 		{
 			qak::stopwatch sw;
 			::usleep(1000);
-			if (!( 0.0 < sw.elapsed_s() )) throw 0;
+			throw_unless(  0.0 < sw.elapsed_s()  );
 		} {
 		}
 	}

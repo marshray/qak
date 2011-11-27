@@ -21,6 +21,11 @@
 
 #include "qak/atomic.hxx"
 
+#include "qak/fail.hxx"
+
+using qak::throw_if;
+using qak::throw_unless;
+
 namespace zzz { //=====================================================================================================|
 
 	template <class T>
@@ -30,47 +35,47 @@ namespace zzz { //==============================================================
 
 		{
 			T a(atom);
-			if (!(a == 0)) throw 0;
+			throw_unless(a == 0);
 
 			a = atom;
-			if (!(a == 0)) throw 0;
+			throw_unless(a == 0);
 
 			a = atom.load();
-			if (!(a == 0)) throw 0;
+			throw_unless(a == 0);
 
 			T b = atom++;
 			T c = atom.load();
-			if (!(b == 0)) throw 0;
-			if (!(c == 1)) throw 0;
+			throw_unless(b == 0);
+			throw_unless(c == 1);
 
 			T d = ++atom;
 			T e = atom.load();
-			if (!(d == 2)) throw 0;
-			if (!(e == 2)) throw 0;
+			throw_unless(d == 2);
+			throw_unless(e == 2);
 		} {
 			atom.store(37);
 
 			T a = atom.load();
-			if (!(a == 37)) throw 0;
+			throw_unless(a == 37);
 
 			T b = atom--;
 			T c = atom.load();
-			if (!(b == 37)) throw 0;
-			if (!(c == 36)) throw 0;
+			throw_unless(b == 37);
+			throw_unless(c == 36);
 
 			T d = --atom;
 			T e = atom.load();
-			if (!(d == 35)) throw 0;
-			if (!(e == 35)) throw 0;
+			throw_unless(d == 35);
+			throw_unless(e == 35);
 		} {
 			T a = 58;
 			atom = a;
-			if (!(atom == 58)) throw 0;
+			throw_unless(atom == 58);
 			T b = 59;
 			T c = atom.exchange(b);
-			if (!(c == 58)) throw 0;
-			if (!(b == 59)) throw 0;
-			if (!(a == 58)) throw 0;
+			throw_unless(c == 58);
+			throw_unless(b == 59);
+			throw_unless(a == 58);
 		}
 	}
 
@@ -86,27 +91,27 @@ namespace zzz { //==============================================================
 		qak::atomic<PT> atom;
 		{
 			PT a = atom.load();
-			if (!(a == p_null)) throw 0;
+			throw_unless(a == p_null);
 
 			atom.store(p0);
 			PT b = atom;
-			if (!(b == p0)) throw 0;
+			throw_unless(b == p0);
 
 			a = atom = p0;
 			while (!atom.compare_exchange_weak(a, p1, qak::memory_order::seq_cst)) { }
-			if (!(atom.load() == p1)) throw 0;
+			throw_unless(atom.load() == p1);
 
 			a = atom = p0;
-			if (!atom.compare_exchange_strong(a, p1, qak::memory_order::seq_cst)) throw 0;
-			if (!(atom.load() == p1)) throw 0;
+			throw_unless(atom.compare_exchange_strong(a, p1, qak::memory_order::seq_cst));
+			throw_unless(atom.load() == p1);
 
 			a = atom = p0;
 			while (!atom.compare_exchange_weak(a, p1, qak::memory_order::seq_cst, qak::memory_order::seq_cst)) { }
-			if (!(atom.load() == p1)) throw 0;
+			throw_unless(atom.load() == p1);
 
 			a = atom = p0;
-			if (!atom.compare_exchange_strong(a, p1, qak::memory_order::seq_cst, qak::memory_order::seq_cst)) throw 0;
-			if (!(atom.load() == p1)) throw 0;
+			throw_unless(atom.compare_exchange_strong(a, p1, qak::memory_order::seq_cst, qak::memory_order::seq_cst));
+			throw_unless(atom.load() == p1);
 		}
 	}
 
@@ -126,14 +131,14 @@ namespace zzz { //==============================================================
 		//	Test bool.
 		{
 			qak::atomic<bool> a;
-			if (!(a.load() == false)) throw 0;
+			throw_unless(a.load() == false);
 		}
 
 		//	Test undefined struct pointers.
 		{
 			struct undefined_struct;
 			qak::atomic<undefined_struct *> a;
-			if (!(a == nullptr)) throw 0;
+			throw_unless(a == nullptr);
 		}
 	}
 

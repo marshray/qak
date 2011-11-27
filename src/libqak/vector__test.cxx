@@ -21,45 +21,50 @@
 
 #include "qak/vector.hxx"
 
+#include "qak/fail.hxx"
+
+using qak::throw_if;
+using qak::throw_unless;
+
 namespace zzz { //=====================================================================================================|
 
 	void do_it()
 	{
 		{
 			qak::vector<int> v;
-			if (!(   v.size() == 0   )) throw 0;
-			if (!(   v.empty()   )) throw 0;
-			if (!(   1   )) throw 0;
-			if (!(   1   )) throw 0;
-			if (!(   1   )) throw 0;
+			throw_unless(  v.size() == 0  );
+			throw_unless(  v.empty()  );
+			throw_unless(  1  );
+			throw_unless(  1  );
+			throw_unless(  1  );
 		} {
 			qak::vector<int> v(0);
-			if (!(   v.size() == 0   )) throw 0;
-			if (!(   v.empty()   )) throw 0;
+			throw_unless(  v.size() == 0  );
+			throw_unless(  v.empty()  );
 		} {
 			qak::vector<int> v(1);
-			if (!(   v.size() == 1   )) throw 0;
-			if (!(   !v.empty()   )) throw 0;
-			if (!(   v[0] == 0   )) throw 0;
-			if (!(   v.front() == 0   )) throw 0;
-			if (!(   v.back() == 0   )) throw 0;
+			throw_unless(  v.size() == 1  );
+			throw_unless(  !v.empty()  );
+			throw_unless(  v[0] == 0  );
+			throw_unless(  v.front() == 0  );
+			throw_unless(  v.back() == 0  );
 			v[0] = 1;
-			if (!(   v[0] == 1   )) throw 0;
-			if (!(   v.front() == 1   )) throw 0;
-			if (!(   v.back() == 1   )) throw 0;
+			throw_unless(  v[0] == 1  );
+			throw_unless(  v.front() == 1  );
+			throw_unless(  v.back() == 1  );
 			v.push_back(2);
-			if (!(   v.size() == 2   )) throw 0;
-			if (!(   v[0] == 1   )) throw 0;
-			if (!(   v.front() == 1   )) throw 0;
-			if (!(   v.back() == 2   )) throw 0;
-			if (!(   v[1] == 2   )) throw 0;
+			throw_unless(  v.size() == 2  );
+			throw_unless(  v[0] == 1  );
+			throw_unless(  v.front() == 1  );
+			throw_unless(  v.back() == 2  );
+			throw_unless(  v[1] == 2  );
 		} {
 			qak::vector<unsigned> v;
 			for (unsigned n = 0; n < 2000; ++n)
 				v.push_back(n);
-			if (!(   v.size() == 2000   )) throw 0;
+			throw_unless(  v.size() == 2000  );
 			for (unsigned n = 0; n < 2000; ++n)
-				if (!(   v[n] == n   )) throw 0;
+				throw_unless(  v[n] == n  );
 		} {
 			qak::vector<unsigned> v(std::size_t(1), 1u);
 			for (unsigned n = 0; n < 2000; ++n)
@@ -69,12 +74,24 @@ namespace zzz { //==============================================================
 			for (unsigned n = 0; n < 2000; ++n)
 				v.push_back( v[ n%v.size() ] );
 			for (unsigned n = 0; n < 2001; ++n)
-				if (!(   v[n] == 1   )) throw 0;
+				throw_unless(  v[n] == 1  );
 		} {
 			qak::vector<unsigned> v(std::size_t(1000), 1u);
-			for (unsigned n = 0; n < 1000; ++n) if (!(   v[n] == 1   )) throw 0;
+			for (unsigned n = 0; n < 1000; ++n) throw_unless(  v[n] == 1  );
 			qak::vector<unsigned> u(std::move(v));
-			for (unsigned n = 0; n < 1000; ++n) if (!(   u[n] == 1   )) throw 0;
+			for (unsigned n = 0; n < 1000; ++n) throw_unless(  u[n] == 1  );
+		} {
+			qak::vector<unsigned> v;
+			for (unsigned n = 0; n < 20; ++n)
+				v.push_back(n);
+			unsigned cnt = 0;
+			for (auto u : v)
+				throw_unless(  u == cnt++  );
+			throw_unless(  cnt == v.size()  );
+		} {
+			qak::vector<double> v(25, 0.0);
+			v.clear();
+			throw_unless(  v.empty()  );
 		}
 	}
 

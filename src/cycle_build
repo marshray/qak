@@ -20,6 +20,27 @@
 set -o errexit
 #set -o xtrace
 
+#	Command-line options.
+unset -v NO_TEST
+for arg in '--debug' "$@"
+do
+	if [[ "$arg" == "--debug" ]]; then
+		BUILD_TYPE=debug
+	elif [[ "$arg" == "--release" ]]; then
+		BUILD_TYPE=release
+	elif [[ "$arg" == "--profile" ]]; then
+		BUILD_TYPE=profile
+	elif [[ "$arg" == "--no-test" ]]; then
+		NO_TEST="--no-test"
+	elif [[ "$arg" == "--help" ]]; then
+		echo "Other valid command-line arguments are --debug, --release, --profile, and --no-test."
+		exit 1
+	else
+		echo "Unrecognized command-line argument: $arg"
+		exit 1
+	fi
+done
+
 #	You can specify the qak/src directory in the environment variable QAK_SRC_DIR,
 #	or this script will try to figure it out from its own location.
 
@@ -33,9 +54,16 @@ if [[ ! -d "$QAK_SRC_DIR" ]]; then QAK_SRC_DIR=$(dirname "$THIS_SCRIPT"); fi
 echo "QAK_SRC_DIR=$QAK_SRC_DIR"
 export QAK_SRC_DIR
 
-if [[ ! -d "$QAK_BUILD_DIR" ]]; then
-	QAK_BUILD_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build-debug"
+if [[ -z "$QAK_BUILD_ROOT_DIR" ]]; then
+	QAK_BUILD_ROOT_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build"
+	unset -v QAK_BUILD_DIR
 fi
+
+if [[ -z "$QAK_BUILD_DIR" ]]; then
+	QAK_BUILD_DIR="$QAK_BUILD_ROOT_DIR/$BUILD_TYPE"
+fi
+
+echo "QAK_BUILD_ROOT_DIR=$QAK_BUILD_ROOT_DIR"
 echo "QAK_BUILD_DIR=$QAK_BUILD_DIR"
 
 BUILDIT_ERR=$QAK_BUILD_DIR/buildit-err.txt
@@ -53,7 +81,7 @@ function buildit
 	fi
 	cd "$QAK_BUILD_DIR" || exit 1
 
-	$QAK_SRC_DIR/build --no-no-test 2>&1 >$BUILDIT_OUT_1 || cp $BUILDIT_OUT_1 $BUILDIT_ERR
+	$QAK_SRC_DIR/build --$BUILD_TYPE $NO_TEST 2>&1 >$BUILDIT_OUT_1 || cp $BUILDIT_OUT_1 $BUILDIT_ERR
 
 	cp $BUILDIT_OUT_1 $BUILDIT_OUT_2
 
@@ -66,6 +94,6 @@ while true; do
 	buildit && echo -n ':-) ---- build successful ----' || echo ':-P **** build failed ****'
 	if inotifywait -r -e modify "$QAK_SRC_DIR" >>/dev/null 2>&1 ; then
 		echo -e '\nChange detected!'
-		sleep 1
+		sleep 0.5
 	fi
 done

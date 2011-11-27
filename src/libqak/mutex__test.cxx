@@ -21,6 +21,11 @@
 
 #include "qak/mutex.hxx"
 
+#include "qak/fail.hxx"
+
+using qak::throw_if;
+using qak::throw_unless;
+
 namespace zzz { //=====================================================================================================|
 
 	void do_it()
@@ -30,19 +35,19 @@ namespace zzz { //==============================================================
 		} {
 			qak::mutex mut;
 			qak::mutex_lock lock(mut);
-			if (!(  lock.is_locking(mut)  )) throw 0;
+			throw_unless(  lock.is_locking(mut)  );
 		} {
 			qak::mutex mut;
 			qak::mutex_lock lock = mut.lock();
-			if (!(  lock.is_locking(mut)  )) throw 0;
+			throw_unless(  lock.is_locking(mut)  );
 
 			qak::optional<qak::mutex_lock> opt_lock = mut.try_lock();
-			if (!(  !opt_lock  )) throw 0;
+			throw_unless(  !opt_lock  );
 		} {
 			qak::mutex mut;
 			qak::optional<qak::mutex_lock> opt_lock = mut.try_lock();
-			if (!(  opt_lock  )) throw 0;
-			if (!(  opt_lock->is_locking(mut)  )) throw 0;
+			throw_unless(  opt_lock  );
+			throw_unless(  opt_lock->is_locking(mut)  );
 		}
 	}
 

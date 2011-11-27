@@ -42,6 +42,8 @@ Misc coding practices:
 
 	C++11 (aka C++0x) features are adopted as they become available in g++.
 
+	Use //? //?TODO to indicate places that are incomplete or may need review or revision.
+
 Headers from the standard library, annotated with the lines of dependency c++ headers
 and the total LoC.
 

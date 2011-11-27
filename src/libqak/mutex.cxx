@@ -21,9 +21,9 @@
 
 #include "qak/mutex.hxx"
 
-#define IMPLEMENTATION_PTHREAD 1
+#include "qak/config.hxx"
 
-#if IMPLEMENTATION_PTHREAD
+#if QAK_THREAD_PTHREAD
 
 //		Error code definitions from The Open Group - Single UNIX® Specification, Version 2
 #	include <errno.h> // pthread error codes
@@ -31,7 +31,7 @@
 
 #elif 0
 #elif 1
-#	error ""
+//#	error ""
 #endif
 
 #include <cassert>
@@ -62,7 +62,7 @@ namespace qak { //==============================================================
 	{
 		if (p_m_)
 		{
-#if IMPLEMENTATION_PTHREAD
+#if QAK_THREAD_PTHREAD
 
 			int err = ::pthread_mutex_unlock(
 				reinterpret_cast<pthread_mutex_t *>(p_m_->imp_) ); // pthread_mutex_t *mutex
@@ -85,9 +85,8 @@ namespace qak { //==============================================================
 				throw 0;
 			}
 
-#elif 0
-#elif 1
-#	error ""
+#else
+			throw 0;
 #endif
 		}
 	}
@@ -111,7 +110,7 @@ namespace qak { //==============================================================
 
 	mutex::mutex() // : imp_ not initialized
 	{
-#if IMPLEMENTATION_PTHREAD
+#if QAK_THREAD_PTHREAD
 
 		static_assert(sizeof(pthread_mutex_t) <= sizeof(imp_), "increase size of imp_" );
 		static_assert(alignof(pthread_mutex_t) <= alignof(imp_), "increase align of imp_" );
@@ -145,9 +144,8 @@ namespace qak { //==============================================================
 			throw 0;
 		}
 
-#elif 0
-#elif 1
-#	error ""
+#else
+		throw 0;
 #endif
 	}
 
@@ -155,7 +153,7 @@ namespace qak { //==============================================================
 
 	mutex::~mutex()
 	{
-#if IMPLEMENTATION_PTHREAD
+#if QAK_THREAD_PTHREAD
 
 		//	http://pubs.opengroup.org/onlinepubs/007908799/xsh/pthread_mutex_destroy.html
 		int err = ::pthread_mutex_destroy(
@@ -186,9 +184,8 @@ namespace qak { //==============================================================
 			throw 0;
 		}
 
-#elif 0
-#elif 1
-#	error ""
+#else
+		throw 0;
 #endif
 	}
 
@@ -196,7 +193,7 @@ namespace qak { //==============================================================
 
 	mutex_lock mutex::lock()
 	{
-#if IMPLEMENTATION_PTHREAD
+#if QAK_THREAD_PTHREAD
 
 		//	http://pubs.opengroup.org/onlinepubs/007908799/xsh/pthread_mutex_lock.html
 		int err = ::pthread_mutex_lock(
@@ -222,10 +219,10 @@ namespace qak { //==============================================================
 			throw 0;
 		}
 
-#elif 0
-#elif 1
-#	error ""
+#else
+		throw 0;
 #endif
+
 		return mutex_lock(mutex_lock::private_construct_tag(), this);
 	}
 
@@ -233,7 +230,7 @@ namespace qak { //==============================================================
 
 	optional<mutex_lock> mutex::try_lock()
 	{
-#if IMPLEMENTATION_PTHREAD
+#if QAK_THREAD_PTHREAD
 
 		//	http://pubs.opengroup.org/onlinepubs/007908799/xsh/pthread_mutex_lock.html
 		int err = ::pthread_mutex_trylock(
@@ -249,28 +246,24 @@ namespace qak { //==============================================================
 			//	psz = "The mutex could not be acquired because it was already locked.";
 			return optional<mutex_lock>();
 
+		//case EINVAL:
+		//	psz = "The mutex was created with the protocol attribute having the value PTHREAD_PRIO_PROTECT "
+		//		"and the calling thread's priority is higher than the mutex's current priority ceiling ";
+		//		"or the value specified by mutex does not refer to an initialised mutex object.";
+		//	break;
+
+		//case EAGAIN:
+		//	psz = "The mutex could not be acquired because the maximum number of recursive locks for mutex "
+		//		"has been exceeded.";
+		//	break;
+
 		default:
-
-			//case EINVAL:
-			//	psz = "The mutex was created with the protocol attribute having the value PTHREAD_PRIO_PROTECT "
-			//		"and the calling thread's priority is higher than the mutex's current priority ceiling ";
-			//		"or the value specified by mutex does not refer to an initialised mutex object.";
-			//	break;
-
-			//case EAGAIN:
-			//	psz = "The mutex could not be acquired because the maximum number of recursive locks for mutex "
-			//		"has been exceeded.";
-			//	break;
-			//}
-
 			throw 0;
 		}
 
-#elif 0
-#elif 1
-#	error ""
-#endif
+#else
 		throw 0;
+#endif
 	}
 
 } // qak ==============================================================================================================|

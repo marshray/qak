@@ -21,36 +21,31 @@
 
 #include "qak/now.hxx"
 
+#include "qak/config.hxx"
 #include "qak/atomic.hxx"
 
-#define USE_RDTSC 1
-
-#if __linux__
-//#	include <linux/time.h>
-#	include <time.h>
-#else
-#	warning "port me"
+#if QAK_POSIX
+#	include <time.h> // clock_gettime
 #endif
 
 namespace qak { //=====================================================================================================|
 
-#if __linux__
 	static uint64_t clock_gettime_ns(clockid_t const clk_id)
 	{
+#if QAK_POSIX
 		timespec tp;
 		int rc = ::clock_gettime(
 			clk_id, // clockid_t clk_id
 			&tp ); // struct timespec *tp
 		if (!( !rc )) throw 0;
 
-		uint64_t ns = 1;
-		ns *= 1000*1000*1000;
+		uint64_t ns = 1*1000*1000*1000;
 		ns *= tp.tv_sec;
 		ns += tp.tv_nsec;
+#endif
 
 		return ns;
 	}
-#endif // __linux__
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
@@ -58,11 +53,7 @@ namespace qak { //==============================================================
 
 	static uint64_t read_wallclock_ns()
 	{
-#if __linux__
 		return clock_gettime_ns(CLOCK_MONOTONIC) - wallclock_ns_offset;
-#else
-		throw 0;
-#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
@@ -71,29 +62,21 @@ namespace qak { //==============================================================
 
 	static uint64_t read_realtime_ns()
 	{
-#if __linux__
 		return clock_gettime_ns(CLOCK_REALTIME) - realtime_ns_offset;
-#else
-		throw 0;
-#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
 	static uint64_t read_cpu_thread_ns()
 	{
-#if __linux__
 		return clock_gettime_ns(CLOCK_THREAD_CPUTIME_ID);
-#else
-		throw 0;
-#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
 	static uint64_t read_cpu_cycles()
 	{
-#if USE_RDTSC
+#if QAK_INLINEASM_GCC && QAK_ASM_RDTSC
 		uint32_t a, d;
 		__asm__ volatile("rdtsc" : "=a" (a), "=d" (d));
 		uint64_t ns = d;

@@ -23,9 +23,32 @@ set -o errexit
 #	Specify the compiler to use.
 #
 GCC_VER=4.6.2
-GCC_PLATFORM=x86_64-linux-gnu
 C_COMPILER=gcc-$GCC_VER
 CXX_COMPILER=g++-$GCC_VER
+
+#	Command-line options.
+unset -v NO_TEST
+for arg in '--debug' "$@"
+do
+	if [[ "$arg" == "--debug" ]]; then
+		BUILD_TYPE=debug
+		CMAKE_BUILD_TYPE=Debug
+	elif [[ "$arg" == "--release" ]]; then
+		BUILD_TYPE=release
+		CMAKE_BUILD_TYPE=Release
+	elif [[ "$arg" == "--profile" ]]; then
+		BUILD_TYPE=profile
+		CMAKE_BUILD_TYPE=Release
+	elif [[ "$arg" == "--no-test" ]]; then
+		NO_TEST="--no-test"
+	elif [[ "$arg" == "--help" ]]; then
+		echo "Other valid command-line arguments are --debug, --release, --profile, and --no-test."
+		exit 1
+	else
+		echo "Unrecognized command-line argument: $arg"
+		exit 1
+	fi
+done
 
 #	You can specify the qak/src directory in the environment variable QAK_SRC_DIR,
 #	or this script will try to figure it out from its own location.
@@ -40,28 +63,18 @@ if [[ ! -d "$QAK_SRC_DIR" ]]; then QAK_SRC_DIR=$(dirname "$THIS_SCRIPT"); fi
 echo "QAK_SRC_DIR=$QAK_SRC_DIR"
 export QAK_SRC_DIR
 
+#	You can specify the build root directory in the environment variable QAK_BUILD_ROOT_DIR,
+#	or it uses a directory named 'build' as a sibling of $QAK_SRC_DIR
 
-#	Command-line options.
-#
-#	For example:
-#		./clean_cmake
-#		./clean_cmake --release
-#		./clean_cmake --profile
-#
-if [[ "$1" == "" || "$1" == "--debug" ]]; then # default is --debug build
-	BUILD_TYPE=Debug
-	QAK_BUILD_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build-debug"
-elif [[ "$1" == "--release" ]]; then
-	BUILD_TYPE=Release
-	QAK_BUILD_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build-release"
-elif [[ "$1" == "--profile" ]]; then
-	BUILD_TYPE=Release
-	PROFILE=1
-	QAK_BUILD_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build-profile"
-else
-	exit 1
+if [[ -z "$QAK_BUILD_ROOT_DIR" ]]; then
+	QAK_BUILD_ROOT_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build"
+	unset -v QAK_BUILD_DIR
 fi
 
+#	The build directory is named after the build type, under $QAK_BUILD_ROOT_DIR
+QAK_BUILD_DIR="$QAK_BUILD_ROOT_DIR/$BUILD_TYPE"
+
+echo "QAK_BUILD_ROOT_DIR=$QAK_BUILD_ROOT_DIR"
 echo "QAK_BUILD_DIR=$QAK_BUILD_DIR"
 
 #
@@ -83,7 +96,6 @@ set -o xtrace
 mkdir -p "$QAK_BUILD_DIR"
 cd "$QAK_BUILD_DIR"
 set +o xtrace
-
 
 #	-std=c++0x is to use newer language features.
 #
@@ -114,14 +126,16 @@ export CFLAGS CXXFLAGS
 declare -x GLIBCXX_DEBUG_MESSAGE_LENGTH=120
 
 cmake -Wdev \
--DCMAKE_VERBOSE_MAKEFILE=true \
 -DCMAKE_C_COMPILER=$C_COMPILER \
 -DCMAKE_CXX_COMPILER=$CXX_COMPILER \
 -DQAK_SRC_DIR="$QAK_SRC_DIR" \
--DCMAKE_BUILD_TYPE="$BUILD_TYPE" "$QAK_SRC_DIR"
+-DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" "$QAK_SRC_DIR"
+
+# -DCMAKE_VERBOSE_MAKEFILE=true
 
 make
 
-export CTEST_OUTPUT_ON_FAILURE=1
-make test
-
+if [[ -z "$NO_TEST" ]]; then
+	export CTEST_OUTPUT_ON_FAILURE=1
+	make test
+fi

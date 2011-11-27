@@ -17,56 +17,39 @@
 //
 //=====================================================================================================================|
 //
-//	optional__test.cxx
-
-#include "qak/optional.hxx"
+//	fail_test.cxx
 
 #include "qak/fail.hxx"
-
-using qak::throw_if;
-using qak::throw_unless;
 
 namespace zzz { //=====================================================================================================|
 
 	void do_it()
 	{
 		{
-			qak::optional<int> oi;
-			throw_unless(  !oi  );
-
-			oi = 2;
-			throw_unless(  oi  );
-			throw_unless(  *oi == 2  );
+			bool throwed = false;
+			try { qak::throw_if(1 == 1); } catch (...) { throwed = true; }
+			if (!throwed) throw 0;
 		} {
-			qak::optional<int> oi = 2;
-			throw_unless(  oi  );
-			throw_unless(  *oi == 2  );
+			bool throwed = false;
+			try { qak::throw_unless(1 == 1); } catch (...) { throwed = true; }
+			if (throwed) throw 0;
 		} {
-			qak::optional<int> oi0;
-			qak::optional<int> oi1;
-			throw_unless(  !oi0  );
-			throw_unless(  !oi1  );
-			std::swap(oi0, oi1);
-			throw_unless(  !oi0  );
-			throw_unless(  !oi1  );
-			oi0.swap(oi1);
-			throw_unless(  !oi0  );
-			throw_unless(  !oi1  );
+			bool throwed = false;
+			try { qak::throw_if(1 == 2); } catch (...) { throwed = true; }
+			if (throwed) throw 0;
 		} {
-			qak::optional<int> oi0;
-			qak::optional<int> oi1 = 1;
-			throw_unless(  !oi0  );
-			throw_unless(  oi1 && 1 == *oi1  );
-			oi0.swap(oi1);
-			throw_unless(  oi0 && 1 == *oi0  );
-			throw_unless(  !oi1  );
-			oi0.swap(oi1);
-			throw_unless(  !oi0  );
-			throw_unless(  oi1 && 1 == *oi1  );
+			bool throwed = false;
+			try { qak::throw_unless(1 == 2); } catch (...) { throwed = true; }
+			if (!throwed) throw 0;
+		} {
+		} {
+		} {
+		} {
+		} {
 		}
 	}
 
-} // zzz ==============================================================================================================|
+} // namespace zzz ====================================================================================================|
 
 	int main(int, char * [])
 	{

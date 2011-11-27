@@ -34,7 +34,7 @@
 
 namespace qak { //=====================================================================================================|
 
-	//	Although this class superficially resembles an std::vector, it's really intended to be something closer to a
+	//	Although this class superficially resembles a std::vector, it's really intended to be something closer to a
 	//	dumb dynamic array. Its correctness guarantees are relaxed whenever it makes things simpler. For example,
 	//	methods typically do not attempt to offer exception safety guarantees beyond what falls out naturally from
 	//	a straightforward implementation of their functionality.
@@ -410,10 +410,9 @@ namespace qak { //==============================================================
 
 		void clear() noexcept
 		{
-			for (size_type ix = 0; ix < this->size(); ++ix)
-				b_[ix].~value_type();
-			delete [] reinterpret_cast<storage_type_ *>(b_);
-			b_ = e_ = z_ = 0;
+			//	Not changing the capacity. Don't think this is required behavior, so it could change.
+			while (e_ != b_)
+				(--e_)->~value_type();
 		}
 	};
 
@@ -425,6 +424,15 @@ namespace qak { //==============================================================
 	//?template <class T> bool operator >  (vector<T> const & lhs, vector<T> const & rhs);
 	//?template <class T> bool operator >= (vector<T> const & lhs, vector<T> const & rhs);
 	//?template <class T> bool operator <= (vector<T> const & lhs, vector<T> const & rhs);
+
+	//-----------------------------------------------------------------------------------------------------------------|
+	//
+	//	Support for the range-based for statement.
+
+	template <class T> inline typename vector<T>::iterator       begin(vector<T> & v)       { return v.begin(); }
+	template <class T> inline typename vector<T>::const_iterator begin(vector<T> const & v) { return v.cbegin(); }
+	template <class T> inline typename vector<T>::iterator       end  (vector<T> & v)       { return v.end(); }
+	template <class T> inline typename vector<T>::const_iterator end  (vector<T> const & v) { return v.cend(); }
 
 } // namespace qak ====================================================================================================|
 namespace std {
@@ -439,5 +447,4 @@ namespace std {
 	//?template <class T> struct hash<vector<T>>;
 
 } // namespace std ====================================================================================================|
-
 #endif // ndef qak_vector_hxx_INCLUDED_

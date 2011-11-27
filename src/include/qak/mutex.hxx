@@ -24,6 +24,7 @@
 #ifndef qak_mutex_hxx_INCLUDED_
 #define qak_mutex_hxx_INCLUDED_
 
+#include "qak/config.hxx" // QAK_THREAD_PTHREAD
 #include "qak/optional.hxx"
 
 namespace qak { //=====================================================================================================|
@@ -55,8 +56,9 @@ namespace qak { //==============================================================
 	private:
 		friend struct mutex_lock;
 
-		// This needs to be large enough for the platform's native mutex type.
-		void * imp_[5]; // 5 seems to work for pthreads
+#if QAK_THREAD_PTHREAD
+		void * imp_[5]; // 5 seems to be large enough for pthreads' native mutex type.
+#endif
 	};
 
 	//-----------------------------------------------------------------------------------------------------------------|
