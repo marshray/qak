@@ -23,6 +23,7 @@ add_library( qak STATIC
 	host_info.cxx
 	mutex.cxx
 	now.cxx
+	rptr.cxx
 	stopwatch.cxx
 	thread.cxx
 )
@@ -57,6 +58,10 @@ add_test(now__test ${EXECUTABLE_OUTPUT_PATH}/now__test)
 add_executable(optional__test optional__test.cxx)
 target_link_libraries(optional__test qak)
 add_test(optional__test ${EXECUTABLE_OUTPUT_PATH}/optional__test)
+
+add_executable(rptr__test rptr__test.cxx)
+target_link_libraries(rptr__test qak)
+add_test(rptr__test ${EXECUTABLE_OUTPUT_PATH}/rptr__test)
 
 add_executable(stopwatch__test stopwatch__test.cxx)
 target_link_libraries(stopwatch__test qak)
