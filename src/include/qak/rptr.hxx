@@ -26,6 +26,7 @@
 
 #include <cassert>
 #include <cstdint> // std::uintptr_t
+#include <type_traits> // std::is_convertible
 
 //=====================================================================================================================|
 

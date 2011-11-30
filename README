@@ -50,6 +50,7 @@ and the total LoC.
 Include these freely and assume they are already needed and impose no additional cost:
 
 	#include <cstdint> // 4 1309 std::uintN_t
+	#include <cstddef> // 4 1261 std::nullptr_t
 	#include <cassert> // 1 36
 	#include <type_traits> // 4 2260 std::aligned_storage, is_integral, enable_if
 	#include <new> // 8 1766 placement new
@@ -63,7 +64,6 @@ These are 'allowed' anywhere, but assume they have some cost.
 	#include <climits> 1 47
 	#include <cfloat> 1 49
 	#include <cstdbool> 4 1259
-	#include <cstddef> 4 1261
 	#include <csignal> 4 1272
 	#include <cstdarg> 4 1272
 	#include <clocale> 4 1273
