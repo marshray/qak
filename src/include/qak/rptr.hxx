@@ -363,6 +363,20 @@ namespace qak { //==============================================================
 			return !! p_;
 		}
 
+		//	Increments the refcnt manually. Use with caution.
+		void unsafe__inc_refcnt()
+		{
+			assert(p_);
+			p_->tpointee_inc_ref_();
+		}
+
+		//	Decrements the refcnt manually. Use with caution.
+		void unsafe__dec_refcnt()
+		{
+			assert(p_);
+			p_->tpointee_dec_ref_();
+		}
+
 	private:
 
 		template <class U> friend struct rptr;

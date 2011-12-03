@@ -27,6 +27,7 @@
 //		the justification for this, I have not included it.
 //
 //		The standard <atomic> header defines free functions for atomic operations which are not included here.
+//		The standard <atomic> header defines an atomic<bool> specialization which is not defined here.
 //
 
 #ifndef qak_atomic_hxx_INCLUDED_
@@ -254,9 +255,27 @@ namespace atomic_imp_ns_ { //===================================================
 		static_assert(0*sizeof(Enable), "qak::atomic<T> expecting an integral or pointer type for T.");
 	};
 
+	//-----------------------------------------------------------------------------------------------------------------|
+
+//	//	Specialization of qak::atomic<T> for bool.
+//	template <class T>
+//	struct atomic<T, typename std::enable_if<
+//				std::is_same<bool, T>::value
+//			>::type
+//		> : atomic_base<T>
+//	{
+//		static_assert(0*sizeof(T), "qak::atomic<bool> not supported.");
+//	};
+
+	//-----------------------------------------------------------------------------------------------------------------|
+
 	//	Specialization of qak::atomic<T> for integral types.
 	template <class T>
-	struct atomic<T, typename std::enable_if<std::is_integral<T>::value>::type> : atomic_base<T>
+	struct atomic<T, typename std::enable_if<
+				   std::is_integral<T>::value
+//				&& !std::is_same<bool, T>::value
+			>::type
+		> : atomic_base<T>
 	{
 		atomic() noexcept : atomic_base<T>() { }
 		constexpr atomic(T t_in) noexcept : atomic_base<T>(t_in) { }
@@ -272,6 +291,8 @@ namespace atomic_imp_ns_ { //===================================================
 		T operator ++ () noexcept    { return static_cast<T>(this->stor_.preincrement());  }
 		T operator -- () noexcept    { return static_cast<T>(this->stor_.predecrement());  }
 	};
+
+	//-----------------------------------------------------------------------------------------------------------------|
 
 	//	Specialization of qak::atomic<T> for pointer types.
 	template <class T>
