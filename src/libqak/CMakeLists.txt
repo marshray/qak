@@ -26,6 +26,7 @@ add_library( qak STATIC
 	rptr.cxx
 	stopwatch.cxx
 	thread.cxx
+	thread_group.cxx
 )
 
 target_link_libraries( qak
@@ -70,6 +71,10 @@ add_test(stopwatch__test ${EXECUTABLE_OUTPUT_PATH}/stopwatch__test)
 add_executable(thread__test thread__test.cxx)
 target_link_libraries(thread__test qak)
 add_test(thread__test ${EXECUTABLE_OUTPUT_PATH}/thread__test)
+
+add_executable(thread_group__test thread_group__test.cxx)
+target_link_libraries(thread_group__test qak)
+add_test(thread_group__test ${EXECUTABLE_OUTPUT_PATH}/thread_group__test)
 
 add_executable(vector__test vector__test.cxx)
 target_link_libraries(vector__test qak)

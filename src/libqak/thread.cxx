@@ -145,10 +145,13 @@ namespace qak { //==============================================================
 
 		CPU_SET_S(cpu_ix, sz, p_cpuset);
 
-		int err = ::sched_setaffinity(
-			0,          // pid_t pid
-			sz,         // size_t cpusetsize
-			p_cpuset ); // cpu_set_t * mask
+#ifndef NDEBUG
+		int err =
+#endif
+			::sched_setaffinity(
+				0,          // pid_t pid
+				sz,         // size_t cpusetsize
+				p_cpuset ); // cpu_set_t * mask
 		std::free(p_cpuset); p_cpuset = 0;
 
 		assert(!err); //? better error checking?

@@ -21,6 +21,8 @@
 
 #include "qak/host_info.hxx"
 
+#include "qak/mutex.hxx"
+#include "qak/now.hxx"
 #include "qak/config.hxx"
 #include "qak/fail.hxx"
 
@@ -32,18 +34,42 @@ namespace qak { namespace host_info { //========================================
 
 	static unsigned const fc_max_plausible_cpus = 1*1000*1000;
 
+	//	The sysconf calls can take a nontrivial amount of CPU, so cache their result for up to 500 ms.
+	static uint64_t const fc_max_sysconf_age_ns = uint64_t(500)*1000*1000;
+
+	mutex f_sysconf_mutex;
+	uint64_t f_most_recent_sysconf_cnt_cpus_configured_ns = uint64_t(0) - fc_max_sysconf_age_ns*2;
+	uint64_t f_most_recent_sysconf_cnt_cpus_available_ns  = uint64_t(0) - fc_max_sysconf_age_ns*2;
+	static unsigned f_cnt_cpus_configured = 0;
+	static unsigned f_cnt_cpus_available = 0;
+
 	//-----------------------------------------------------------------------------------------------------------------|
 
 	unsigned cnt_cpus_configured()
 	{
 #if QAK_POSIX
 
-		long l = ::sysconf(
-			_SC_NPROCESSORS_CONF ); //? this macro may not be available everywhere.
+		unsigned u_cnt_cpus_configured = 0;
+		{
+			mutex_lock lock(f_sysconf_mutex);
 
-		throw_unless(0 < l && l <= fc_max_plausible_cpus);
+			uint64_t now_ns = read_time_source(time_source::wallclock_ns);
+			uint64_t age = now_ns - f_most_recent_sysconf_cnt_cpus_configured_ns;
+			if (fc_max_sysconf_age_ns < age)
+			{
+				long l = ::sysconf(
+					_SC_NPROCESSORS_CONF ); //? this macro may not be available everywhere.
 
-		return static_cast<unsigned>(l);
+				throw_unless(0 < l && l <= fc_max_plausible_cpus);
+
+				f_most_recent_sysconf_cnt_cpus_configured_ns = now_ns;
+				f_cnt_cpus_configured = static_cast<unsigned>(l);
+			}
+
+			u_cnt_cpus_configured = f_cnt_cpus_configured;
+		}
+
+		return u_cnt_cpus_configured;
 
 #else
 		throw 0;
@@ -56,12 +82,27 @@ namespace qak { namespace host_info { //========================================
 	{
 #if QAK_POSIX
 
-		long l = ::sysconf(
-			_SC_NPROCESSORS_ONLN ); //? this macro may not be available everywhere.
+		unsigned u_cnt_cpus_available = 0;
+		{
+			mutex_lock lock(f_sysconf_mutex);
 
-		throw_unless(0 < l && l <= fc_max_plausible_cpus);
+			uint64_t now_ns = read_time_source(time_source::wallclock_ns);
+			uint64_t age = now_ns - f_most_recent_sysconf_cnt_cpus_available_ns;
+			if (fc_max_sysconf_age_ns < age)
+			{
+				long l = ::sysconf(
+					_SC_NPROCESSORS_ONLN ); //? this macro may not be available everywhere.
 
-		return static_cast<unsigned>(l);
+				throw_unless(0 < l && l <= fc_max_plausible_cpus);
+
+				f_most_recent_sysconf_cnt_cpus_available_ns = now_ns;
+				f_cnt_cpus_available = static_cast<unsigned>(l);
+			}
+
+			u_cnt_cpus_available = f_cnt_cpus_available;
+		}
+
+		return u_cnt_cpus_available;
 
 #else
 		throw 0;

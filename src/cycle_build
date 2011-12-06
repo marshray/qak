@@ -68,7 +68,7 @@ echo "QAK_BUILD_DIR=$QAK_BUILD_DIR"
 
 BUILDIT_ERR=$QAK_BUILD_DIR/buildit-err.txt
 BUILDIT_OUT_1=$QAK_BUILD_DIR/buildit-out.1.txt
-BUILDIT_OUT_2=$QAK_BUILD_DIR/buildit-out.2.txt
+BUILDIT_OUT_2=$QAK_BUILD_ROOT_DIR/buildit-out.2.txt
 
 function buildit
 {

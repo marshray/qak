@@ -102,22 +102,26 @@ set +o xtrace
 #	-Wno-invalid-offsetof is for libnrcgc, which takes one or two mild liberties with the
 #	layout of non-PODs.
 #
-C_CXX_FLAGS="-ggdb3 -pthread -D_POSIX_PTHREAD_SEMANTICS -D_REENTRANT"   # -Wno-invalid-offsetof -Wno-deprecated
+#C_CXX_FLAGS="-ggdb3"
+C_CXX_FLAGS="$C_CXX_FLAGS -pthread -D_POSIX_PTHREAD_SEMANTICS -D_REENTRANT"   # -Wno-invalid-offsetof -Wno-deprecated
 C_CXX_FLAGS="$C_CXX_FLAGS -Wall"
 CXXFLAGS="-std=c++0x"
-if [[ "$BUILD_TYPE" == "Debug" ]]; then
+if [[ "$BUILD_TYPE" == "debug" ]]; then
+
 	C_CXX_FLAGS="$C_CXX_FLAGS -O0 -fno-inline"
+
 	#	Enable GNU libstdc++ debugging
 	CXXFLAGS="$CXXFLAGS -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC"
 
-elif [[ "$BUILD_TYPE" == "Release" ]]; then
-	if [[ "$PROFILE" == "1" ]]; then
-		#C_CXX_FLAGS="$C_CXX_FLAGS -mtune=pentium -mfpmath=387 -mno-mmx -mno-sse -mno-sse2 -mno-sse3"
-		#C_CXX_FLAGS="$C_CXX_FLAGS -mtune=generic -mfpmath=387 -mno-mmx -mno-sse -mno-sse2 -mno-sse3"
-		C_CXX_FLAGS="$C_CXX_FLAGS -mtune=generic -mfpmath=387 -mno-sse2 -mno-sse3"
-	else
-		C_CXX_FLAGS="$C_CXX_FLAGS"
-	fi
+elif [[ "$BUILD_TYPE" == "release" ]]; then
+
+	C_CXX_FLAGS="$C_CXX_FLAGS"
+
+elif [[ "$BUILD_TYPE" == "profile" ]]; then
+
+	#C_CXX_FLAGS="$C_CXX_FLAGS -mtune=pentium -mfpmath=387 -mno-mmx -mno-sse -mno-sse2 -mno-sse3"
+	#C_CXX_FLAGS="$C_CXX_FLAGS -mtune=generic -mfpmath=387 -mno-mmx -mno-sse -mno-sse2 -mno-sse3"
+	C_CXX_FLAGS="$C_CXX_FLAGS -mtune=generic -mfpmath=387 -mno-sse2 -mno-sse3"
 fi
 CFLAGS="$C_CXX_FLAGS $CFLAGS"
 CXXFLAGS="$C_CXX_FLAGS $CXXFLAGS"
@@ -126,12 +130,12 @@ export CFLAGS CXXFLAGS
 declare -x GLIBCXX_DEBUG_MESSAGE_LENGTH=120
 
 cmake -Wdev \
+-DCMAKE_VERBOSE_MAKEFILE=true \
 -DCMAKE_C_COMPILER=$C_COMPILER \
 -DCMAKE_CXX_COMPILER=$CXX_COMPILER \
 -DQAK_SRC_DIR="$QAK_SRC_DIR" \
 -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" "$QAK_SRC_DIR"
 
-# -DCMAKE_VERBOSE_MAKEFILE=true
 
 make
 
