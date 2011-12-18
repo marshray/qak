@@ -24,7 +24,7 @@
 
 #include <cassert>
 #include <cstdint>
-#include <initializer_list>
+//#include <initializer_list>
 #include <limits> // std::numeric_limits
 #include <new>
 #include <type_traits> // std::aligned_storage

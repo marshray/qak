@@ -97,6 +97,10 @@ mkdir -p "$QAK_BUILD_DIR"
 cd "$QAK_BUILD_DIR"
 set +o xtrace
 
+BUILDIT_ERR=$QAK_BUILD_DIR/buildit-err.txt
+BUILDIT_OUT_1=$QAK_BUILD_DIR/buildit-out.1.txt
+BUILDIT_OUT_2=$QAK_BUILD_ROOT_DIR/buildit-out.2.txt
+
 #	-std=c++0x is to use newer language features.
 #
 #	-Wno-invalid-offsetof is for libnrcgc, which takes one or two mild liberties with the
@@ -137,9 +141,10 @@ cmake -Wdev \
 -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" "$QAK_SRC_DIR"
 
 
-make
+#make
 
-if [[ -z "$NO_TEST" ]]; then
-	export CTEST_OUTPUT_ON_FAILURE=1
-	make test
-fi
+$QAK_SRC_DIR/build --$BUILD_TYPE $NO_TEST 2>&1 >$BUILDIT_OUT_1 || cp $BUILDIT_OUT_1 $BUILDIT_ERR
+
+cp $BUILDIT_OUT_1 $BUILDIT_OUT_2
+
+cat $BUILDIT_OUT_2

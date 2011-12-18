@@ -51,6 +51,7 @@ Include these freely and assume they are already needed and impose no additional
 
 	#include <cstdint> // 4 1309 std::uintN_t
 	#include <cstddef> // 4 1261 std::nullptr_t
+	#include <cstring> // 4 1331 std::mem[cmp|cpy|move|set]
 	#include <cassert> // 1 36
 	#include <type_traits> // 4 2260 std::aligned_storage, is_integral, enable_if
 	#include <new> // 8 1766 placement new
@@ -72,7 +73,6 @@ These are 'allowed' anywhere, but assume they have some cost.
 	#include <cctype> 4 1303
 	#include <initializer_list> 4 1309
 	#include <cwctype> 4 1329
-	#include <cstring> 4 1331
 	#include <cfenv> 5 1353
 	#include <cinttypes> 5 1375
 	#include <cstdio> 4 1391
