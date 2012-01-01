@@ -17,29 +17,30 @@
 //
 //=====================================================================================================================|
 //
-//#include "qak/fail.hxx"
+//	test_app__test.cxx
 
-#ifndef qak_fail_hxx_INCLUDED_
-#define qak_fail_hxx_INCLUDED_
+#include "qak/test_app_pre.hxx"
+#include "qak/test_macros.hxx"
+namespace zzz { //=====================================================================================================|
 
-namespace qak { //=====================================================================================================|
-
-	//=================================================================================================================|
-	//
-	//-	Run time fail.
-
-	//	General-purpose throw function.
-	//?	Marking this noinline can sometimes be smaller, faster code for the normal case.
-	inline void throw_unconditionally() { throw 0; }
-
-	//-	Run time conditional exceptions (like asserts, but for NDEBUG too).
-
-	template <class T> inline void throw_if(T const & b)     { if (!!b) throw_unconditionally(); }
-	template <class T> inline void throw_unless(T const & b) { throw_if(!b); }
-
-	//=================================================================================================================|
+	QAKtest_anon()
+	{
+		QAK_verify( true );
+	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
-} // namespace qak ====================================================================================================|
-#endif // ndef qak_fail_hxx_INCLUDED_
+	QAKtest(a_simple_test)
+	{
+		QAK_verify( ! false );
+	}
+
+	//-----------------------------------------------------------------------------------------------------------------|
+
+	QAKtest(another_simple_test, "with a description")
+	{
+		QAK_verify( ! false );
+	}
+
+} // namespace zzz ====================================================================================================|
+#include "qak/test_app_post.hxx"

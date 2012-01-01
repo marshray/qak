@@ -71,6 +71,9 @@
 	//	We have inline assembler like gcc's format.
 #	define QAK_INLINEASM_GCC 1
 
+#	define  QAK_INT128_TYPE __int128
+#	define QAK_UINT128_TYPE unsigned __int128
+
 #endif
 
 //=====================================================================================================================|

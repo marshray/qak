@@ -28,9 +28,15 @@ add_library( qak STATIC
 	thread.cxx
 	thread_group.cxx
 )
-
 target_link_libraries( qak
 	rt ) # for clock_gettime used in now.cxx
+
+#	Test test_app itself first.
+add_executable(test_app__test test_app__test.cxx)
+target_link_libraries(test_app__test qak)
+add_test(test_app__test ${EXECUTABLE_OUTPUT_PATH}/test_app__test)
+
+#	Everything else in alphabetical order.
 
 add_executable(atomic__test atomic__test.cxx)
 target_link_libraries(atomic__test qak)
@@ -59,6 +65,10 @@ add_test(now__test ${EXECUTABLE_OUTPUT_PATH}/now__test)
 add_executable(optional__test optional__test.cxx)
 target_link_libraries(optional__test qak)
 add_test(optional__test ${EXECUTABLE_OUTPUT_PATH}/optional__test)
+
+add_executable(prng64__test prng64__test.cxx)
+target_link_libraries(prng64__test qak)
+add_test(prng64__test ${EXECUTABLE_OUTPUT_PATH}/prng64__test)
 
 add_executable(rptr__test rptr__test.cxx)
 target_link_libraries(rptr__test qak)
