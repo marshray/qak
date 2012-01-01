@@ -22,16 +22,13 @@
 #include "qak/thread_group.hxx"
 
 #include "qak/atomic.hxx"
-#include "qak/fail.hxx"
 #include "qak/host_info.hxx"
 #include "qak/rptr.hxx"
 #include "qak/stopwatch.hxx"
 #include "qak/thread.hxx"
 
-using qak::atomic;
-using qak::rptr;
-using qak::throw_if;
-using qak::throw_unless;
+#include "qak/test_app_pre.hxx"
+#include "qak/test_macros.hxx"
 
 namespace zzz { //=====================================================================================================|
 
@@ -39,10 +36,10 @@ namespace zzz { //==============================================================
 	{
 		struct stop_flag : qak::rpointee_base<stop_flag>
 		{
-			atomic<bool> b;
+			qak::atomic<bool> b;
 		};
 
-		rptr<stop_flag> p_stop_flag(new stop_flag);
+		qak::rptr<stop_flag> p_stop_flag(new stop_flag);
 
 		provide_thread_stop_fn([p_stop_flag]() { p_stop_flag->b = true; });
 
@@ -55,75 +52,74 @@ namespace zzz { //==============================================================
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
-	void do_it()
+	QAKtest_anon()
 	{
+		//	constructor/destructor
+		qak::thread_group tg(thfn);
+	}
+
+	QAKtest_anon()
+	{
+		qak::stopwatch sw;
+
+		//	constructor/destructor
+		qak::thread_group tg(thfn);
+
+		unsigned target_cnt_threads = qak::host_info::cnt_threads_recommended();
+		target_cnt_threads *= 10;
+
+		//	void set_target_cnt_threads(unsigned cnt)
+		tg.set_target_cnt_threads(target_cnt_threads);
+
+		qak::this_thread::sleep_ns(1*1000*1000); // 1 ms
+
+		//	unsigned get_current_cnt_threads() const
+		std::int64_t total_slept = 0;
+		while (tg.get_current_cnt_threads() < target_cnt_threads)
 		{
-			//	constructor/destructor
-			qak::thread_group tg(thfn);
-		} {
-			qak::stopwatch sw;
+			std::int64_t ns = 10*1000; // 10 us
 
-			//	constructor/destructor
-			qak::thread_group tg(thfn);
+			qak::this_thread::sleep_ns(ns);
+			total_slept += ns;
 
-			unsigned target_cnt_threads = qak::host_info::cnt_threads_recommended();
-			target_cnt_threads *= 10;
-
-			//	void set_target_cnt_threads(unsigned cnt)
-			tg.set_target_cnt_threads(target_cnt_threads);
-
-			qak::this_thread::sleep_ns(1*1000*1000); // 1 ms
-
-			//	unsigned get_current_cnt_threads() const
-			std::int64_t total_slept = 0;
-			while (tg.get_current_cnt_threads() < target_cnt_threads)
-			{
-				std::int64_t ns = 10*1000; // 10 us
-
-				qak::this_thread::sleep_ns(ns);
-				total_slept += ns;
-
-				throw_unless(total_slept < std::int64_t(1)*1000*1000*1000);
-			}
-
-			qak::this_thread::sleep_ns(10*1000); // 10 us
-
-			//	void request_all_stop()
-			tg.request_all_stop();
-
-			//	void join()
-			tg.join();
-
-			//	Took 12 ms on Intel Core i7.
-			throw_unless(sw.elapsed_s() < 1.2);
-		} {
-			//	void set_target_cpu_coverage(float coverage)
-			//?
-		} {
-			//	bool timed_join(std::int64_t max_wait_ns);
-			//?
-		} {
-			//	void swap(thread_group & that)
-			//?
-		} {
-			//	std::swap
-			//?
+			QAK_verify( total_slept < std::int64_t(1)*1000*1000*1000 );
 		}
+
+		qak::this_thread::sleep_ns(10*1000); // 10 us
+
+		//	void request_all_stop()
+		tg.request_all_stop();
+
+		//	void join()
+		tg.join();
+
+		//	Took 12 ms on Intel Core i7.
+		QAK_verify( sw.elapsed_s() < 1.2 );
+	}
+
+	QAKtest_anon()
+	{
+		//	void set_target_cpu_coverage(float coverage)
+		//?
+	}
+
+	QAKtest_anon()
+	{
+		//	bool timed_join(std::int64_t max_wait_ns);
+		//?
+	}
+
+	QAKtest_anon()
+	{
+		//	void swap(thread_group & that)
+		//?
+	}
+
+	QAKtest_anon()
+	{
+		//	std::swap
+		//?
 	}
 
 } // namespace zzz ====================================================================================================|
-
-	int main(int, char * [])
-	{
-		int rc = 1;
-		try
-		{
-			zzz::do_it();
-			rc = 0;
-		}
-		catch (...) { rc |= 2; }
-
-		return rc;
-	}
-
-//=====================================================================================================================|
+#include "qak/test_app_post.hxx"

@@ -21,8 +21,8 @@
 
 #include "qak/now.hxx"
 
-#include "qak/config.hxx"
 #include "qak/atomic.hxx"
+#include "qak/config.hxx"
 
 #if QAK_POSIX
 #	include <time.h> // clock_gettime

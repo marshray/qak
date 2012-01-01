@@ -25,70 +25,63 @@
 #include "qak/host_info.hxx"
 #include "qak/stopwatch.hxx"
 
+#include "qak/test_app_pre.hxx"
+#include "qak/test_macros.hxx"
+
 namespace zzz { //=====================================================================================================|
 
-	void do_it()
+	QAKtest_anon()
 	{
-		{
-			//	Test starting and joining a thread.
+		//	Test starting and joining a thread.
 
-			qak::atomic<bool> b(false);
+		qak::atomic<bool> b(false);
 
-			qak::atomic<qak::thread_id> tid0(0);
+		qak::atomic<qak::thread_id> tid0(0);
 
-			qak::thread_id tid1 = qak::start_thread(
-				[&b, &tid0] // std::function<void()> thread_fn
+		qak::thread_id tid1 = qak::start_thread(
+			[&b, &tid0] // std::function<void()> thread_fn
+			{
+				qak::this_thread::yield();
+				QAK_verify( !b );
+				qak::this_thread::yield();
+				b = true;
+				qak::this_thread::yield();
+				tid0 = qak::this_thread::get_id();
+				qak::this_thread::yield();
+			});
+
+		qak::join_thread(tid1);
+
+		QAK_verify( b );
+		QAK_verify( tid0 == tid1 );
+	}
+
+	QAKtest_anon()
+	{
+		//	Test sleep_ns().
+
+		qak::stopwatch sw;
+		qak::this_thread::sleep_ns(1000*1000);
+		QAK_verify( 1000*1000 <= sw.elapsed_ns() );
+	}
+
+	QAKtest_anon()
+	{
+		//	Test that we can cycle through affinity with all the cpus.
+
+		qak::thread_id tid = qak::start_thread(
+			[] {
+				unsigned cnt = qak::host_info::cnt_cpus_available();
+				for (unsigned cpu_ix = 0; cpu_ix < cnt*5; ++cpu_ix)
 				{
-					qak::this_thread::yield();
-					if (!( !b )) throw 0;
-					qak::this_thread::yield();
-					b = true;
-					qak::this_thread::yield();
-					tid0 = qak::this_thread::get_id();
-					qak::this_thread::yield();
-				});
+					qak::this_thread::set_affinity(cpu_ix);
+					qak::stopwatch sw;
+					while (sw.elapsed_s() < 0.1/cnt/5); // busy
+				}
+			});
 
-			qak::join_thread(tid1);
-
-			if (!( b )) throw 0;
-			if (!( tid0 == tid1 )) throw 0;
-		} {
-			//	Test sleep_ns().
-
-			qak::stopwatch sw;
-			qak::this_thread::sleep_ns(1000*1000);
-			if (!(  1000*1000 <= sw.elapsed_ns() )) throw 0;
-		} {
-			//	Test that we can cycle through affinity with all the cpus.
-
-			qak::thread_id tid = qak::start_thread(
-				[] {
-					unsigned cnt = qak::host_info::cnt_cpus_available();
-					for (unsigned cpu_ix = 0; cpu_ix < cnt*5; ++cpu_ix)
-					{
-						qak::this_thread::set_affinity(cpu_ix);
-						qak::stopwatch sw;
-						while (sw.elapsed_s() < 0.1/cnt/5); // busy
-					}
-				});
-
-			qak::join_thread(tid);
-		}
+		qak::join_thread(tid);
 	}
 
 } // namespace zzz ====================================================================================================|
-
-	int main(int, char * [])
-	{
-		int rc = 1;
-		try
-		{
-			zzz::do_it();
-			rc = 0;
-		}
-		catch (...) { rc |= 2; }
-
-		return rc;
-	}
-
-//=====================================================================================================================|
+#include "qak/test_app_post.hxx"

@@ -21,64 +21,55 @@
 
 #include "qak/optional.hxx"
 
-#include "qak/fail.hxx"
-
-using qak::throw_if;
-using qak::throw_unless;
+#include "qak/test_app_pre.hxx"
+#include "qak/test_macros.hxx"
 
 namespace zzz { //=====================================================================================================|
 
-	void do_it()
+	QAKtest_anon()
 	{
-		{
-			qak::optional<int> oi;
-			throw_unless(  !oi  );
+		qak::optional<int> oi;
+		QAK_verify( !oi );
 
-			oi = 2;
-			throw_unless(  oi  );
-			throw_unless(  *oi == 2  );
-		} {
-			qak::optional<int> oi = 2;
-			throw_unless(  oi  );
-			throw_unless(  *oi == 2  );
-		} {
-			qak::optional<int> oi0;
-			qak::optional<int> oi1;
-			throw_unless(  !oi0  );
-			throw_unless(  !oi1  );
-			std::swap(oi0, oi1);
-			throw_unless(  !oi0  );
-			throw_unless(  !oi1  );
-			oi0.swap(oi1);
-			throw_unless(  !oi0  );
-			throw_unless(  !oi1  );
-		} {
-			qak::optional<int> oi0;
-			qak::optional<int> oi1 = 1;
-			throw_unless(  !oi0  );
-			throw_unless(  oi1 && 1 == *oi1  );
-			oi0.swap(oi1);
-			throw_unless(  oi0 && 1 == *oi0  );
-			throw_unless(  !oi1  );
-			oi0.swap(oi1);
-			throw_unless(  !oi0  );
-			throw_unless(  oi1 && 1 == *oi1  );
-		}
+		oi = 2;
+		QAK_verify( oi );
+		QAK_verify( *oi == 2 );
 	}
 
-} // zzz ==============================================================================================================|
-
-	int main(int, char * [])
+	QAKtest_anon()
 	{
-		int rc = 1;
-		try
-		{
-			zzz::do_it();
-			rc = 0;
-		}
-		catch (...) { rc |= 2; }
-
-		return rc;
+		qak::optional<int> oi = 2;
+		QAK_verify( oi );
+		QAK_verify( *oi == 2 );
 	}
 
-//=====================================================================================================================|
+	QAKtest_anon()
+	{
+		qak::optional<int> oi0;
+		qak::optional<int> oi1;
+		QAK_verify( !oi0 );
+		QAK_verify( !oi1 );
+		std::swap(oi0, oi1);
+		QAK_verify( !oi0 );
+		QAK_verify( !oi1 );
+		oi0.swap(oi1);
+		QAK_verify( !oi0 );
+		QAK_verify( !oi1 );
+	}
+
+	QAKtest_anon()
+	{
+		qak::optional<int> oi0;
+		qak::optional<int> oi1 = 1;
+		QAK_verify( !oi0 );
+		QAK_verify( oi1 && 1 == *oi1 );
+		oi0.swap(oi1);
+		QAK_verify( oi0 && 1 == *oi0 );
+		QAK_verify( !oi1 );
+		oi0.swap(oi1);
+		QAK_verify( !oi0 );
+		QAK_verify( oi1 && 1 == *oi1 );
+	}
+
+} // namespace zzz ====================================================================================================|
+#include "qak/test_app_post.hxx"

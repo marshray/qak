@@ -21,12 +21,10 @@
 
 #include "qak/rptr.hxx"
 
-#include "qak/fail.hxx"
-
 #include <utility> // std::move
 
-using qak::throw_if;
-using qak::throw_unless;
+#include "qak/test_app_pre.hxx"
+#include "qak/test_macros.hxx"
 
 namespace zzz { //=====================================================================================================|
 
@@ -36,20 +34,20 @@ namespace zzz { //==============================================================
 
 		test_base(bool & rb_in) : rb_(rb_in)
 		{
-			throw_unless(  !rb_  );
+			QAK_verify( !rb_ );
 			rb_ = true;
 		}
 
 		~test_base()
 		{
-			throw_unless(  rb_  );
+			QAK_verify( rb_ );
 			rb_ = false;
 		}
 
 		bool verify() const
 		{
-			throw_unless(this);
-			throw_unless(rb_);
+			QAK_verify( this );
+			QAK_verify( rb_ );
 			return true;
 		}
 	};
@@ -63,217 +61,244 @@ namespace zzz { //==============================================================
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
-	void do_it()
+	QAKtest_anon()
 	{
+		//	Default construction.
+		qak::rptr<test_derived> rp;
+	}
+
+	QAKtest_anon()
+	{
+		//	Default construction.
+		qak::rptr<test_base> rp;
+
+		// Test explicit rptr::operator bool ()
+		QAK_verify( !rp );
+		QAK_verify( rp.get() == 0 );
+	}
+
+	QAKtest_anon()
+	{
+		//	Construction from nullptr.
+		qak::rptr<test_base> rp(nullptr);
+		QAK_verify( !rp );
+		QAK_verify( rp.get() == 0 );
+		QAK_verify( rp.use_count() == 0 );
+		QAK_verify( !rp.unique() );
+	}
+
+	QAKtest_anon()
+	{
+		//	Basic construction and destruction.
+		bool constructed = false;
 		{
-			//	Default construction.
-			qak::rptr<test_derived> rp;
-		} {
-			//	Default construction.
-			qak::rptr<test_base> rp;
-
-			// Test explicit rptr::operator bool ()
-			throw_unless(  !rp  );
-			throw_unless(  rp.get() == 0  );
-		} {
-			//	Construction from nullptr.
-			qak::rptr<test_base> rp(nullptr);
-			throw_unless(  !rp  );
-			throw_unless(  rp.get() == 0  );
-			throw_unless(  rp.use_count() == 0  );
-			throw_unless(  !rp.unique()  );
-		} {
-			//	Basic construction and destruction.
-			bool constructed = false;
-			{
-				qak::rptr<test_base> rp(new test_base(constructed));
-				throw_unless(  constructed  );
-				throw_unless(  rp.get()->verify()  ); // rptr::get()
-				throw_unless(  rp->verify()  ); // operator ->
-				throw_unless(  (*rp).verify()  ); // operator *
-				throw_unless(  rp.use_count() == 1  );
-				throw_unless(  rp.unique()  );
-			}
-			throw_unless(  !constructed  );
-		} {
-			//	Construction from pointer-to-derived.
-			bool constructed = false;
-			{
-				qak::rptr<test_base> rp(new test_derived(constructed));
-				throw_unless(  constructed  );
-			}
-			throw_unless(  !constructed  );
-		} {
-			//	Copy construction.
-			bool constructed = false;
-			{
-				qak::rptr<test_base> rp_a(new test_base(constructed));
-				throw_unless(  rp_a->verify()  );
-
-				qak::rptr<test_base> rp_b(rp_a);
-				throw_unless(  rp_b->verify()  );
-
-				throw_unless(  rp_a.use_count() == 2  );
-				throw_unless(  rp_b.use_count() == 2  );
-				throw_unless(  !rp_b.unique()  );
-				throw_unless(  !rp_a.unique()  );
-
-				rp_b.reset(); // rptr<T>::reset()
-				throw_unless(  !rp_b  );
-
-				throw_unless(  rp_a->verify()  );
-			}
-			throw_unless(  !constructed  );
-		} {
-		} {
-			//	Copy construction from rptr-to-derived.
-			bool constructed = false;
-			{
-				qak::rptr<test_derived> rp_a(new test_derived(constructed));
-				throw_unless(  rp_a->verify()  );
-
-				qak::rptr<test_base> rp_b(rp_a);
-				throw_unless(  rp_b->verify()  );
-			}
-			throw_unless(  !constructed  );
-		} {
-			//	Move construction.
-			bool constructed = false;
-			{
-				qak::rptr<test_base> rp_a(new test_base(constructed));
-				throw_unless(  rp_a->verify()  );
-
-				qak::rptr<test_base> rp_b(std::move(rp_a));
-				throw_unless(  rp_b->verify()  );
-			}
-			throw_unless(  !constructed  );
-		} {
-			//	Move construction from rptr-to-derived.
-			bool constructed = false;
-			{
-				qak::rptr<test_base> rp_a(new test_derived(constructed));
-				qak::rptr<test_base> rp_b(std::move(rp_a));
-				throw_unless(  rp_b->verify()  );
-			}
-			throw_unless(  !constructed  );
-		} {
-			//	Reset/replace.
-			bool constructed_a = false;
-			bool constructed_b = false;
-			{
-				qak::rptr<test_base> rp(new test_base(constructed_a));
-				throw_unless(  constructed_a  );
-
-				rp.reset(new test_base(constructed_b));
-				throw_unless(  !constructed_a  );
-				throw_unless(  constructed_b  );
-			}
-			throw_unless(  !constructed_a  );
-			throw_unless(  !constructed_b  );
-		} {
-			//	Copy assignment.
-			bool constructed = false;
-			{
-				qak::rptr<test_base> rp_a(new test_base(constructed));
-				throw_unless(  constructed  );
-
-				qak::rptr<test_base> rp_b;
-				rp_b = rp_a;
-				throw_unless(  constructed  );
-				throw_unless(  rp_a  );
-				throw_unless(  rp_b  );
-			}
-			throw_unless(  !constructed  );
-		} {
-			//	Copy assignment from rptr-to-derived.
-			bool constructed = false;
-			{
-				qak::rptr<test_derived> rp_a(new test_derived(constructed));
-				throw_unless(  constructed  );
-
-				qak::rptr<test_base> rp_b;
-				rp_b = rp_a;
-				throw_unless(  constructed  );
-				throw_unless(  rp_a  );
-				throw_unless(  rp_b  );
-			}
-			throw_unless(  !constructed  );
-		} {
-			//	Move assignment.
-			bool constructed = false;
-			{
-				qak::rptr<test_base> rp_a(new test_base(constructed));
-				throw_unless(  rp_a->verify()  );
-
-				qak::rptr<test_base> rp_b;
-				rp_b = std::move(rp_a);
-				throw_unless(  rp_b->verify()  );
-			}
-			throw_unless(  !constructed  );
-		} {
-			//	Move assignment from rptr-to-derived.
-			bool constructed = false;
-			{
-				qak::rptr<test_base> rp_a(new test_derived(constructed));
-
-				qak::rptr<test_base> rp_b;
-				rp_b = std::move(rp_a);
-				throw_unless(  rp_b->verify()  );
-			}
-			throw_unless(  !constructed  );
-		} {
-			//	Swap.
-			bool constructed_a = false;
-			bool constructed_b = false;
-			{
-				qak::rptr<test_base> rp_a(new test_base(constructed_a));
-				qak::rptr<test_base> rp_b(new test_base(constructed_b));
-
-				test_base * p_a = rp_a.get();
-				test_base * p_b = rp_b.get();
-
-				rp_a.swap(rp_b);
-
-				throw_unless(  p_a == rp_b.get()  );
-				throw_unless(  p_b == rp_a.get()  );
-			}
-			throw_unless(  !constructed_a  );
-			throw_unless(  !constructed_b  );
-		} {
-			//	Std::swap.
-			bool constructed_a = false;
-			bool constructed_b = false;
-			{
-				qak::rptr<test_base> rp_a(new test_base(constructed_a));
-				qak::rptr<test_base> rp_b(new test_base(constructed_b));
-
-				test_base * p_a = rp_a.get();
-				test_base * p_b = rp_b.get();
-
-				std::swap<>(rp_a, rp_b);
-
-				throw_unless(  p_a == rp_b.get()  );
-				throw_unless(  p_b == rp_a.get()  );
-			}
-			throw_unless(  !constructed_a  );
-			throw_unless(  !constructed_b  );
-		} {
+			qak::rptr<test_base> rp(new test_base(constructed));
+			QAK_verify( constructed );
+			QAK_verify( rp.get()->verify() ); // rptr::get()
+			QAK_verify( rp->verify() ); // operator ->
+			QAK_verify( (*rp).verify() ); // operator *
+			QAK_verify( rp.use_count() == 1 );
+			QAK_verify( rp.unique() );
 		}
+		QAK_verify( !constructed );
+	}
+
+	QAKtest_anon()
+	{
+		//	Construction from pointer-to-derived.
+		bool constructed = false;
+		{
+			qak::rptr<test_base> rp(new test_derived(constructed));
+			QAK_verify( constructed );
+		}
+		QAK_verify( !constructed );
+	}
+
+	QAKtest_anon()
+	{
+		//	Copy construction.
+		bool constructed = false;
+		{
+			qak::rptr<test_base> rp_a(new test_base(constructed));
+			QAK_verify( rp_a->verify() );
+
+			qak::rptr<test_base> rp_b(rp_a);
+			QAK_verify( rp_b->verify() );
+
+			QAK_verify( rp_a.use_count() == 2 );
+			QAK_verify( rp_b.use_count() == 2 );
+			QAK_verify( !rp_b.unique() );
+			QAK_verify( !rp_a.unique() );
+
+			rp_b.reset(); // rptr<T>::reset()
+			QAK_verify( !rp_b );
+
+			QAK_verify( rp_a->verify() );
+		}
+		QAK_verify( !constructed );
+	}
+
+	QAKtest_anon()
+	{
+		//	Copy construction from rptr-to-derived.
+		bool constructed = false;
+		{
+			qak::rptr<test_derived> rp_a(new test_derived(constructed));
+			QAK_verify( rp_a->verify() );
+
+			qak::rptr<test_base> rp_b(rp_a);
+			QAK_verify( rp_b->verify() );
+		}
+		QAK_verify( !constructed );
+	}
+
+	QAKtest_anon()
+	{
+		//	Move construction.
+		bool constructed = false;
+		{
+			qak::rptr<test_base> rp_a(new test_base(constructed));
+			QAK_verify( rp_a->verify() );
+
+			qak::rptr<test_base> rp_b(std::move(rp_a));
+			QAK_verify( rp_b->verify() );
+		}
+		QAK_verify( !constructed );
+	}
+
+	QAKtest_anon()
+	{
+		//	Move construction from rptr-to-derived.
+		bool constructed = false;
+		{
+			qak::rptr<test_base> rp_a(new test_derived(constructed));
+			qak::rptr<test_base> rp_b(std::move(rp_a));
+			QAK_verify( rp_b->verify() );
+		}
+		QAK_verify( !constructed );
+	}
+
+	QAKtest_anon()
+	{
+		//	Reset/replace.
+		bool constructed_a = false;
+		bool constructed_b = false;
+		{
+			qak::rptr<test_base> rp(new test_base(constructed_a));
+			QAK_verify( constructed_a );
+
+			rp.reset(new test_base(constructed_b));
+			QAK_verify( !constructed_a );
+			QAK_verify( constructed_b );
+		}
+		QAK_verify( !constructed_a );
+		QAK_verify( !constructed_b );
+	}
+
+	QAKtest_anon()
+	{
+		//	Copy assignment.
+		bool constructed = false;
+		{
+			qak::rptr<test_base> rp_a(new test_base(constructed));
+			QAK_verify( constructed );
+
+			qak::rptr<test_base> rp_b;
+			rp_b = rp_a;
+			QAK_verify( constructed );
+			QAK_verify( rp_a );
+			QAK_verify( rp_b );
+		}
+		QAK_verify( !constructed );
+	}
+
+	QAKtest_anon()
+	{
+		//	Copy assignment from rptr-to-derived.
+		bool constructed = false;
+		{
+			qak::rptr<test_derived> rp_a(new test_derived(constructed));
+			QAK_verify( constructed );
+
+			qak::rptr<test_base> rp_b;
+			rp_b = rp_a;
+			QAK_verify( constructed );
+			QAK_verify( rp_a );
+			QAK_verify( rp_b );
+		}
+		QAK_verify( !constructed );
+	}
+
+	QAKtest_anon()
+	{
+		//	Move assignment.
+		bool constructed = false;
+		{
+			qak::rptr<test_base> rp_a(new test_base(constructed));
+			QAK_verify( rp_a->verify() );
+
+			qak::rptr<test_base> rp_b;
+			rp_b = std::move(rp_a);
+			QAK_verify( rp_b->verify() );
+		}
+		QAK_verify( !constructed );
+	}
+
+	QAKtest_anon()
+	{
+		//	Move assignment from rptr-to-derived.
+		bool constructed = false;
+		{
+			qak::rptr<test_base> rp_a(new test_derived(constructed));
+
+			qak::rptr<test_base> rp_b;
+			rp_b = std::move(rp_a);
+			QAK_verify( rp_b->verify() );
+		}
+		QAK_verify( !constructed );
+	}
+
+	QAKtest_anon()
+	{
+		//	Swap.
+		bool constructed_a = false;
+		bool constructed_b = false;
+		{
+			qak::rptr<test_base> rp_a(new test_base(constructed_a));
+			qak::rptr<test_base> rp_b(new test_base(constructed_b));
+
+			test_base * p_a = rp_a.get();
+			test_base * p_b = rp_b.get();
+
+			rp_a.swap(rp_b);
+
+			QAK_verify( p_a == rp_b.get() );
+			QAK_verify( p_b == rp_a.get() );
+		}
+		QAK_verify( !constructed_a );
+		QAK_verify( !constructed_b );
+	}
+
+	QAKtest_anon()
+	{
+		//	Std::swap.
+		bool constructed_a = false;
+		bool constructed_b = false;
+		{
+			qak::rptr<test_base> rp_a(new test_base(constructed_a));
+			qak::rptr<test_base> rp_b(new test_base(constructed_b));
+
+			test_base * p_a = rp_a.get();
+			test_base * p_b = rp_b.get();
+
+			std::swap<>(rp_a, rp_b);
+
+			QAK_verify( p_a == rp_b.get() );
+			QAK_verify( p_b == rp_a.get() );
+		}
+		QAK_verify( !constructed_a );
+		QAK_verify( !constructed_b );
 	}
 
 } // namespace zzz ====================================================================================================|
-
-	int main(int, char * [])
-	{
-		int rc = 1;
-		try
-		{
-			zzz::do_it();
-			rc = 0;
-		}
-		catch (...) { rc |= 2; }
-
-		return rc;
-	}
-
-//=====================================================================================================================|
+#include "qak/test_app_post.hxx"

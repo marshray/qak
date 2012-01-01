@@ -21,49 +21,40 @@
 
 #include "qak/mutex.hxx"
 
-#include "qak/fail.hxx"
-
-using qak::throw_if;
-using qak::throw_unless;
+#include "qak/test_app_pre.hxx"
+#include "qak/test_macros.hxx"
 
 namespace zzz { //=====================================================================================================|
 
-	void do_it()
+	QAKtest_anon()
 	{
-		{
-			qak::mutex mut;
-		} {
-			qak::mutex mut;
-			qak::mutex_lock lock(mut);
-			throw_unless(  lock.is_locking(mut)  );
-		} {
-			qak::mutex mut;
-			qak::mutex_lock lock = mut.lock();
-			throw_unless(  lock.is_locking(mut)  );
+		qak::mutex mut;
+	}
 
-			qak::optional<qak::mutex_lock> opt_lock = mut.try_lock();
-			throw_unless(  !opt_lock  );
-		} {
-			qak::mutex mut;
-			qak::optional<qak::mutex_lock> opt_lock = mut.try_lock();
-			throw_unless(  opt_lock  );
-			throw_unless(  opt_lock->is_locking(mut)  );
-		}
+	QAKtest_anon()
+	{
+		qak::mutex mut;
+		qak::mutex_lock lock(mut);
+		QAK_verify( lock.is_locking(mut) );
+	}
+
+	QAKtest_anon()
+	{
+		qak::mutex mut;
+		qak::mutex_lock lock = mut.lock();
+		QAK_verify( lock.is_locking(mut) );
+
+		qak::optional<qak::mutex_lock> opt_lock = mut.try_lock();
+		QAK_verify( !opt_lock );
+	}
+
+	QAKtest_anon()
+	{
+		qak::mutex mut;
+		qak::optional<qak::mutex_lock> opt_lock = mut.try_lock();
+		QAK_verify( opt_lock );
+		QAK_verify( opt_lock->is_locking(mut) );
 	}
 
 } // namespace zzz ====================================================================================================|
-
-	int main(int, char * [])
-	{
-		int rc = 1;
-		try
-		{
-			zzz::do_it();
-			rc = 0;
-		}
-		catch (...) { rc |= 2; }
-
-		return rc;
-	}
-
-//=====================================================================================================================|
+#include "qak/test_app_post.hxx"

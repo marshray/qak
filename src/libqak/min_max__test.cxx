@@ -21,38 +21,18 @@
 
 #include "qak/min_max.hxx"
 
-#include "qak/fail.hxx"
-
-using qak::throw_if;
-using qak::throw_unless;
+#include "qak/test_app_pre.hxx"
+#include "qak/test_macros.hxx"
 
 namespace zzz { //=====================================================================================================|
 
-	void do_it()
+	QAKtest_anon()
 	{
-		{
-			throw_unless(  qak::min<>(0, 1) == 0  );
-			throw_unless(  qak::min<>(1, 0) == 0  );
-			throw_unless(  qak::max<>(0, 1) == 1  );
-			throw_unless(  qak::max<>(1, 0) == 1  );
-		} {
-		} {
-		}
+		QAK_verify( qak::min<>(0, 1) == 0 );
+		QAK_verify( qak::min<>(1, 0) == 0 );
+		QAK_verify( qak::max<>(0, 1) == 1 );
+		QAK_verify( qak::max<>(1, 0) == 1 );
 	}
 
 } // namespace zzz ====================================================================================================|
-
-	int main(int, char * [])
-	{
-		int rc = 1;
-		try
-		{
-			zzz::do_it();
-			rc = 0;
-		}
-		catch (...) { rc |= 2; }
-
-		return rc;
-	}
-
-//=====================================================================================================================|
+#include "qak/test_app_post.hxx"

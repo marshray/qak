@@ -21,40 +21,28 @@
 
 #include "qak/host_info.hxx"
 
-#include "qak/fail.hxx"
-
-using qak::throw_if;
-using qak::throw_unless;
+#include "qak/test_app_pre.hxx"
+#include "qak/test_macros.hxx"
 
 namespace zzz { //=====================================================================================================|
 
-	void do_it()
+	QAKtest_anon()
 	{
-		{
-			unsigned u = qak::host_info::cnt_cpus_configured();
-			throw_unless(0 < u && u < 1*1000*1000);
-		} {
-			unsigned u = qak::host_info::cnt_cpus_available();
-			throw_unless(0 < u && u < 1*1000*1000);
-		} {
-			unsigned u = qak::host_info::cnt_threads_recommended();
-			throw_unless(0 < u && u < 1*1000*1000);
-		}
+		unsigned u = qak::host_info::cnt_cpus_configured();
+		QAK_verify( 0 < u && u < 1*1000*1000 );
+	}
+
+	QAKtest_anon()
+	{
+		unsigned u = qak::host_info::cnt_cpus_available();
+		QAK_verify( 0 < u && u < 1*1000*1000 );
+	}
+
+	QAKtest_anon()
+	{
+		unsigned u = qak::host_info::cnt_threads_recommended();
+		QAK_verify( 0 < u && u < 1*1000*1000 );
 	}
 
 } // namespace zzz ====================================================================================================|
-
-	int main(int, char * [])
-	{
-		int rc = 1;
-		try
-		{
-			zzz::do_it();
-			rc = 0;
-		}
-		catch (...) { rc |= 2; }
-
-		return rc;
-	}
-
-//=====================================================================================================================|
+#include "qak/test_app_post.hxx"

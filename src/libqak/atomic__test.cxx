@@ -21,10 +21,8 @@
 
 #include "qak/atomic.hxx"
 
-#include "qak/fail.hxx"
-
-using qak::throw_if;
-using qak::throw_unless;
+#include "qak/test_app_pre.hxx"
+#include "qak/test_macros.hxx"
 
 namespace zzz { //=====================================================================================================|
 
@@ -35,47 +33,47 @@ namespace zzz { //==============================================================
 
 		{
 			T a(atom);
-			throw_unless(a == 0);
+			QAK_verify( a == 0 );
 
 			a = atom;
-			throw_unless(a == 0);
+			QAK_verify( a == 0 );
 
 			a = atom.load();
-			throw_unless(a == 0);
+			QAK_verify( a == 0 );
 
 			T b = atom++;
 			T c = atom.load();
-			throw_unless(b == 0);
-			throw_unless(c == 1);
+			QAK_verify( b == 0 );
+			QAK_verify( c == 1 );
 
 			T d = ++atom;
 			T e = atom.load();
-			throw_unless(d == 2);
-			throw_unless(e == 2);
+			QAK_verify( d == 2 );
+			QAK_verify( e == 2 );
 		} {
 			atom.store(37);
 
 			T a = atom.load();
-			throw_unless(a == 37);
+			QAK_verify( a == 37 );
 
 			T b = atom--;
 			T c = atom.load();
-			throw_unless(b == 37);
-			throw_unless(c == 36);
+			QAK_verify( b == 37 );
+			QAK_verify( c == 36 );
 
 			T d = --atom;
 			T e = atom.load();
-			throw_unless(d == 35);
-			throw_unless(e == 35);
+			QAK_verify( d == 35 );
+			QAK_verify( e == 35 );
 		} {
 			T a = 58;
 			atom = a;
-			throw_unless(atom == 58);
+			QAK_verify( atom == 58 );
 			T b = 59;
 			T c = atom.exchange(b);
-			throw_unless(c == 58);
-			throw_unless(b == 59);
-			throw_unless(a == 58);
+			QAK_verify( c == 58 );
+			QAK_verify( b == 59 );
+			QAK_verify( a == 58 );
 		}
 	}
 
@@ -91,70 +89,55 @@ namespace zzz { //==============================================================
 		qak::atomic<PT> atom;
 		{
 			PT a = atom.load();
-			throw_unless(a == p_null);
+			QAK_verify( a == p_null );
 
 			atom.store(p0);
 			PT b = atom;
-			throw_unless(b == p0);
+			QAK_verify( b == p0 );
 
 			a = atom = p0;
 			while (!atom.compare_exchange_weak(a, p1, qak::memory_order::seq_cst)) { }
-			throw_unless(atom.load() == p1);
+			QAK_verify( atom.load() == p1 );
 
 			a = atom = p0;
-			throw_unless(atom.compare_exchange_strong(a, p1, qak::memory_order::seq_cst));
-			throw_unless(atom.load() == p1);
+			QAK_verify( atom.compare_exchange_strong(a, p1, qak::memory_order::seq_cst) );
+			QAK_verify( atom.load() == p1 );
 
 			a = atom = p0;
 			while (!atom.compare_exchange_weak(a, p1, qak::memory_order::seq_cst, qak::memory_order::seq_cst)) { }
-			throw_unless(atom.load() == p1);
+			QAK_verify( atom.load() == p1 );
 
 			a = atom = p0;
-			throw_unless(atom.compare_exchange_strong(a, p1, qak::memory_order::seq_cst, qak::memory_order::seq_cst));
-			throw_unless(atom.load() == p1);
+			QAK_verify( atom.compare_exchange_strong(a, p1, qak::memory_order::seq_cst, qak::memory_order::seq_cst) );
+			QAK_verify( atom.load() == p1 );
 		}
 	}
 
-	void do_it()
+	QAKtest_anon() { do_test<char>(); }
+	QAKtest_anon() { do_test<signed char>(); }
+	QAKtest_anon() { do_test<unsigned char>(); }
+	QAKtest_anon() { do_test<signed int>(); }
+	QAKtest_anon() { do_test<unsigned int>(); }
+	QAKtest_anon() { do_test<signed long>(); }
+	QAKtest_anon() { do_test<unsigned long>(); }
+
+	QAKtest_anon() { do_test_ptr<unsigned char *>(); }
+	QAKtest_anon() { do_test_ptr<unsigned char const *>(); }
+
+	//	Test bool.
+	QAKtest_anon()
 	{
-		do_test<char>();
-		do_test<signed char>();
-		do_test<unsigned char>();
-		do_test<signed int>();
-		do_test<unsigned int>();
-		do_test<signed long>();
-		do_test<unsigned long>();
-
-		do_test_ptr<unsigned char *>();
-		do_test_ptr<unsigned char const *>();
-
-		//	Test bool.
-		{
-			qak::atomic<bool> a;
-			throw_unless(a.load() == false);
-		}
-
-		//	Test undefined struct pointers.
-		{
-			struct undefined_struct;
-			qak::atomic<undefined_struct *> a;
-			throw_unless(a == nullptr);
-		}
+		qak::atomic<bool> a;
+		QAK_verify( a.load() == false );
 	}
 
-} // zzz ==============================================================================================================|
-
-	int main(int, char * [])
+	//	Test undefined struct pointers.
+	QAKtest_anon()
 	{
-		int rc = 1;
-		try
-		{
-			zzz::do_it();
-			rc = 0;
-		}
-		catch (...) { rc |= 2; }
-
-		return rc;
+		struct undefined_struct;
+		qak::atomic<undefined_struct *> a;
+		QAK_verify( a == nullptr );
 	}
 
-//=====================================================================================================================|
+} // namespace zzz ====================================================================================================|
+#include "qak/test_app_post.hxx"

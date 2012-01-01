@@ -21,47 +21,38 @@
 
 #include "qak/fail.hxx"
 
+#include "qak/test_app_pre.hxx"
+#include "qak/test_macros.hxx"
+
 namespace zzz { //=====================================================================================================|
 
-	void do_it()
+	QAKtest_anon()
 	{
-		{
-			bool throwed = false;
-			try { qak::throw_if(1 == 1); } catch (...) { throwed = true; }
-			if (!throwed) throw 0;
-		} {
-			bool throwed = false;
-			try { qak::throw_unless(1 == 1); } catch (...) { throwed = true; }
-			if (throwed) throw 0;
-		} {
-			bool throwed = false;
-			try { qak::throw_if(1 == 2); } catch (...) { throwed = true; }
-			if (throwed) throw 0;
-		} {
-			bool throwed = false;
-			try { qak::throw_unless(1 == 2); } catch (...) { throwed = true; }
-			if (!throwed) throw 0;
-		} {
-		} {
-		} {
-		} {
-		} {
-		}
+		bool throwed = false;
+		try { qak::throw_if(1 == 1); } catch (...) { throwed = true; }
+		QAK_verify( throwed );
+	}
+
+	QAKtest_anon()
+	{
+		bool throwed = false;
+		try { qak::throw_unless(1 == 1); } catch (...) { throwed = true; }
+		QAK_verify( !throwed );
+	}
+
+	QAKtest_anon()
+	{
+		bool throwed = false;
+		try { qak::throw_if(1 == 2); } catch (...) { throwed = true; }
+		QAK_verify( !throwed );
+	}
+
+	QAKtest_anon()
+	{
+		bool throwed = false;
+		try { qak::throw_unless(1 == 2); } catch (...) { throwed = true; }
+		QAK_verify( throwed );
 	}
 
 } // namespace zzz ====================================================================================================|
-
-	int main(int, char * [])
-	{
-		int rc = 1;
-		try
-		{
-			zzz::do_it();
-			rc = 0;
-		}
-		catch (...) { rc |= 2; }
-
-		return rc;
-	}
-
-//=====================================================================================================================|
+#include "qak/test_app_post.hxx"
