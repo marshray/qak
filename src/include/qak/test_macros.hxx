@@ -30,5 +30,8 @@
 //	Check that the macro argument evaluates to true in boolean context.
 #define QAK_verify(...) if (__VA_ARGS__) { } else QAK_fail_test()
 
+//	Check that the two macro arguments compare equal with '=='.
+#define QAK_verify_equal(a, b) if ((a) == (b)) { } else QAK_fail_test()
+
 //=====================================================================================================================|
 #endif // ndef qak_test_macros_hxx_INCLUDED_
