@@ -21,6 +21,8 @@
 
 #include "qak/vector.hxx"
 
+#include "qak/min_max.hxx"
+
 #include "qak/test_app_pre.hxx"
 #include "qak/test_macros.hxx"
 
@@ -106,6 +108,30 @@ namespace zzz { //==============================================================
 		for (auto u : v)
 			QAK_verify( u == cnt++ );
 		QAK_verify( cnt == v.size() );
+	}
+
+	QAKtest_anon()
+	{
+		//	Test decreasing sizes
+
+		typedef qak::vector<unsigned> v_us_t;
+		typedef v_us_t::size_type v_us_size_t;
+		//	Resizing downwards
+		qak::vector<unsigned> v;
+		for (unsigned n = 0; n < 200; ++n)
+			v.push_back(n);
+		while (!v.empty())
+		{
+			v_us_size_t sz_old = v.size();
+			v_us_size_t sz_new = sz_old*19/20 + sz_old%13 + sz_old%7;
+			sz_new = qak::min<v_us_size_t>(sz_new, sz_old - 1);
+
+			v.resize(sz_new);
+
+			QAK_verify( sz_new == v.size() );
+			for (unsigned n = 0; n < sz_new; ++n)
+				QAK_verify( n == v[n] );
+		}
 	}
 
 	QAKtest_anon()

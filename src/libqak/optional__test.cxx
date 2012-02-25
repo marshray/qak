@@ -45,6 +45,33 @@ namespace zzz { //==============================================================
 
 	QAKtest_anon()
 	{
+		qak::optional<int> oi_a = 2;
+
+		// copy construction
+		qak::optional<int> oi_b(oi_a);
+		QAK_verify( oi_b );
+		QAK_verify( *oi_b == 2 );
+
+		qak::optional<int> oi_c = oi_a;
+		QAK_verify( oi_c );
+		QAK_verify( *oi_c == 2 );
+
+		// copy construction
+		{
+			qak::optional<int> const & oi_r = oi_a;
+
+			qak::optional<int> oi_d(oi_r);
+			QAK_verify( oi_d );
+			QAK_verify( *oi_d == 2 );
+
+			qak::optional<int> oi_e = oi_r;
+			QAK_verify( oi_e );
+			QAK_verify( *oi_e == 2 );
+		}
+	}
+
+	QAKtest_anon()
+	{
 		qak::optional<int> oi0;
 		qak::optional<int> oi1;
 		QAK_verify( !oi0 );

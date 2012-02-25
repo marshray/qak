@@ -225,7 +225,7 @@ namespace qak { //==============================================================
 					clear();
 				else
 				{
-					for (size_type ix = this->size(); sz <= ix; --ix)
+					for (size_type ix = this->size(); sz < ix; --ix)
 					{
 						// If dtor throws, we're at least consistent with the remaining elements.
 						--e_;

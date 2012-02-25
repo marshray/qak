@@ -66,16 +66,17 @@ namespace qak_rptr_imp_ { // ===================================================
 
 	//=================================================================================================================|
 
-	//	Inherit from this base class to enable management by rptr.
-	//	It's in the global namespace to prevent ADL surprises with the derived types.
+	//	Inherit from qak::rpointee to enable management by rptr.
+	//	It's in a special namespace to prevent ADL surprises with the derived types.
 	//	It will cause pointee classes to have a vtable and be noncopyable and nonmoveable.
 	//	Destruction will be performed via the virtual destructor.
 	//
 	template <class T>
 	struct rpointee_base : virtual qak_rptr_imp__rpointee_NTB_
 	{
-		//	Add some handy typedefs to tpointee classes.
-		typedef ::qak::rptr<T> TP;
+		//	Add some handy typedefs to rpointee classes.
+		typedef ::qak::rptr<T> RP;
+		typedef ::qak::rptr<T const> RPC;
 	};
 
 } // namespace qak_rptr_imp_

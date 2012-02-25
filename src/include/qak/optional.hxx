@@ -42,7 +42,8 @@ namespace qak { //==============================================================
 			reinterpret_cast<char *>(&stor_)[sizeof(T)] = 0;
 		}
 
-		//	Copy ctor.
+		//	Copy construction.
+
 		optional(optional<T> const & that)
 		{
 			if (!that)
@@ -51,12 +52,11 @@ namespace qak { //==============================================================
 			}
 			else
 			{
-				new (&this->stor_) T(*reinterpret_cast<T const *>(&that->stor_));
+				new (&this->stor_) T(*reinterpret_cast<T const *>(&that.stor_));
 				reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
 			}
 		}
 
-		//	Copy ctor from related type.
 		template <class U>
 		optional(optional<U> const & that)
 		{
@@ -66,12 +66,13 @@ namespace qak { //==============================================================
 			}
 			else
 			{
-				new (&this->stor_) T(*reinterpret_cast<U const *>(&that->stor_));
+				new (&this->stor_) T(*reinterpret_cast<U const *>(&that.stor_));
 				reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
 			}
 		}
 
-		//	Move ctor.
+		//	Move construction.
+
 		optional(optional<T> && that)
 		{
 			new (&this->stor_) T(std::move(*reinterpret_cast<T *>(&that.stor_)));
@@ -93,14 +94,16 @@ namespace qak { //==============================================================
 			reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
 		}
 
-		//	Dtor.
+		//	Destruction.
+
 		~optional()
 		{
 			if (*this)
 				reinterpret_cast<T *>(&stor_)->~T();
 		}
 
-		//	Assign oper.
+		//	Copy assignment.
+
 		optional & operator = (optional<T> const & that)
 		{
 			if (this != &that)
@@ -111,7 +114,6 @@ namespace qak { //==============================================================
 			return *this;
 		}
 
-		//	Assign oper from related type.
 		template <class U>
 		optional & operator = (optional<U> const & that)
 		{
@@ -126,6 +128,10 @@ namespace qak { //==============================================================
 			}
 			return *this;
 		}
+
+		//	Move assignment.
+
+		//?
 
 		//	Assign oper from value.
 		template <class V>
