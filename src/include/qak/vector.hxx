@@ -147,9 +147,36 @@ namespace qak { //==============================================================
 			delete [] reinterpret_cast<storage_type_ *>(b_);
 		}
 
-		//?vector<T> & operator = (vector<T> const & x);
-		//?vector<T> & operator = (vector<T> && x);
-		//?vector<T> & operator = (std::initializer_list<T> il);
+		vector<T> & operator = (vector<T> const & that)
+		{
+			if (this != &that)
+			{
+				this->clear();
+				if (that.empty())
+				{
+					this->shrink_to_fit();
+				}
+				else
+				{
+					this->reserve(that.size());
+					this->assign(that.b_, that.e_);
+				}
+			}
+
+			return *this;
+		}
+
+		vector<T> & operator = (vector<T> && src)
+		{
+			assert(this != &src);
+			this->clear();
+			this->shrink_to_fit();
+			this->swap(src);
+
+			return *this;
+		}
+
+		// vector<T> & operator = (std::initializer_list<T> il); //? TODO
 
 		template <class InputIterator>
 		void assign(InputIterator first, InputIterator last)
@@ -433,6 +460,16 @@ namespace qak { //==============================================================
 	template <class T> inline typename vector<T>::const_iterator begin(vector<T> const & v) { return v.cbegin(); }
 	template <class T> inline typename vector<T>::iterator       end  (vector<T> & v)       { return v.end(); }
 	template <class T> inline typename vector<T>::const_iterator end  (vector<T> const & v) { return v.cend(); }
+
+	//-----------------------------------------------------------------------------------------------------------------|
+
+	template <class T> inline void reverse_inplace(vector<T> & v)
+	{
+		typename vector<T>::size_type sz = v.size();
+		typename vector<T>::size_type left_half_end = sz/2;
+		for (typename vector<T>::size_type ix = 0; ix < left_half_end; ++ix)
+			::std::swap<>(v[ix], v[sz - 1 - ix]);
+	}
 
 } // namespace qak ====================================================================================================|
 namespace std {

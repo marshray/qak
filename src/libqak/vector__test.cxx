@@ -116,7 +116,7 @@ namespace zzz { //==============================================================
 
 		typedef qak::vector<unsigned> v_us_t;
 		typedef v_us_t::size_type v_us_size_t;
-		//	Resizing downwards
+
 		qak::vector<unsigned> v;
 		for (unsigned n = 0; n < 200; ++n)
 			v.push_back(n);
@@ -140,6 +140,31 @@ namespace zzz { //==============================================================
 		v.clear();
 		QAK_verify( v.empty() );
 	}
+
+	QAKtest_anon() // copy assignment
+	{
+		qak::vector<unsigned> v_a(std::size_t(1000), 1u);
+		for (unsigned n = 0; n < 1000; ++n) QAK_verify( v_a[n] == 1 );
+
+		qak::vector<unsigned> v_b;
+		v_b = v_a;
+
+		for (unsigned n = 0; n < 1000; ++n) QAK_verify( v_b[n] == 1 );
+	}
+
+	QAKtest_anon() // move assignment
+	{
+		qak::vector<unsigned> v_a(std::size_t(1000), 1u);
+		for (unsigned n = 0; n < 1000; ++n) QAK_verify( v_a[n] == 1 );
+
+		qak::vector<unsigned> v_b;
+		v_b = std::move(v_a);
+
+		QAK_verify( v_a.empty() );
+		for (unsigned n = 0; n < 1000; ++n) QAK_verify( v_b[n] == 1 );
+	}
+
+	//? test move assignment
 
 } // namespace zzz ====================================================================================================|
 #include "qak/test_app_post.hxx"
