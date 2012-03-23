@@ -1,6 +1,6 @@
 #=================================================================================================|
 #
-#   Copyright (c) 2011, Marsh Ray
+#   Copyright (c) 2011-2012, Marsh Ray
 #
 #   Permission to use, copy, modify, and/or distribute this software for any
 #   purpose with or without fee is hereby granted, provided that the above
@@ -23,6 +23,7 @@ add_library( qak STATIC
 	host_info.cxx
 	mutex.cxx
 	now.cxx
+	permutation.cxx
 	rptr.cxx
 	stopwatch.cxx
 	thread.cxx
@@ -69,6 +70,10 @@ add_test(now__test ${EXECUTABLE_OUTPUT_PATH}/now__test)
 add_executable(optional__test optional__test.cxx)
 target_link_libraries(optional__test qak)
 add_test(optional__test ${EXECUTABLE_OUTPUT_PATH}/optional__test)
+
+add_executable(permutation__test permutation__test.cxx)
+target_link_libraries(permutation__test qak)
+add_test(permutation__test ${EXECUTABLE_OUTPUT_PATH}/permutation__test)
 
 add_executable(prng64__test prng64__test.cxx)
 target_link_libraries(prng64__test qak)
