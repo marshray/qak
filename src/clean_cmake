@@ -22,7 +22,8 @@ set -o errexit
 
 #	Specify the compiler to use.
 #
-GCC_VER=4.6.2
+#GCC_VER=4.6.2
+GCC_VER=4.7.0
 C_COMPILER=gcc-$GCC_VER
 CXX_COMPILER=g++-$GCC_VER
 

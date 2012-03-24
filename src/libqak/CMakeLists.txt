@@ -51,6 +51,10 @@ add_executable(fail__test fail__test.cxx)
 target_link_libraries(fail__test qak)
 add_test(fail__test ${EXECUTABLE_OUTPUT_PATH}/fail__test)
 
+add_executable(hash__test hash__test.cxx)
+target_link_libraries(hash__test qak)
+add_test(hash__test ${EXECUTABLE_OUTPUT_PATH}/hash__test)
+
 add_executable(host_info__test host_info__test.cxx)
 target_link_libraries(host_info__test qak)
 add_test(host_info__test ${EXECUTABLE_OUTPUT_PATH}/host_info__test)

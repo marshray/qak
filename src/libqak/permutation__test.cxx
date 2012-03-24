@@ -343,6 +343,50 @@ namespace zzz { //==============================================================
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
+	template <class T> void test_index_permutation_set_identity()
+	{
+		{
+			index_permutation<T> p_ref(0);
+			index_permutation<T> p(p_ref);
+			p.set_identity();
+			QAK_verify(p == p_ref);
+		} {
+			index_permutation<T> p_ref(1);
+			index_permutation<T> p(p_ref);
+			p.set_identity();
+			QAK_verify(p == p_ref);
+		} {
+			index_permutation<T> p_ref(2);
+			index_permutation<T> p(p_ref);
+			p.swap_two(0, 1);
+			p.set_identity();
+			QAK_verify(p == p_ref);
+		} {
+			index_permutation<T> p_ref(3);
+			index_permutation<T> p(p_ref);
+			p.swap_two(0, 1);
+			p.swap_two(1, 2);
+			p.set_identity();
+			QAK_verify(p == p_ref);
+		}
+	}
+
+	QAKtest(index_permutation_set_identity, "index_permutation set_identity().")
+	{
+		test_index_permutation_set_identity<signed char>();
+		test_index_permutation_set_identity<short int>();
+		test_index_permutation_set_identity<int>();
+		test_index_permutation_set_identity<long int>();
+		test_index_permutation_set_identity<long long int>();
+		test_index_permutation_set_identity<unsigned char>();
+		test_index_permutation_set_identity<unsigned short int>();
+		test_index_permutation_set_identity<unsigned int>();
+		test_index_permutation_set_identity<unsigned long int>();
+		test_index_permutation_set_identity<unsigned long long int>();
+	}
+
+	//-----------------------------------------------------------------------------------------------------------------|
+
 	template <class T> void test_index_permutation_swap()
 	{
 		index_permutation<T> p_a;

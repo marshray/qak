@@ -33,6 +33,9 @@
 //	Check that the two macro arguments compare equal with '=='.
 #define QAK_verify_equal(a, b) if ((a) == (b)) { } else QAK_fail_test()
 
+//	Check that the two macro arguments compare not equal with '!='.
+#define QAK_verify_notequal(a, b) if ((a) != (b)) { } else QAK_fail_test()
+
 //	Check that the macro argument is zero.
 #define QAK_verify_zero(a) if ((a) == 0) { } else QAK_fail_test()
 
