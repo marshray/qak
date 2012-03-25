@@ -28,6 +28,7 @@ add_library( qak STATIC
 	stopwatch.cxx
 	thread.cxx
 	thread_group.cxx
+	ucs.cxx
 )
 target_link_libraries( qak
 	rt ) # for clock_gettime used in now.cxx
@@ -98,6 +99,10 @@ add_test(thread__test ${EXECUTABLE_OUTPUT_PATH}/thread__test)
 add_executable(thread_group__test thread_group__test.cxx)
 target_link_libraries(thread_group__test qak)
 add_test(thread_group__test ${EXECUTABLE_OUTPUT_PATH}/thread_group__test)
+
+add_executable(ucs__test ucs__test.cxx)
+target_link_libraries(ucs__test qak)
+add_test(ucs__test ${EXECUTABLE_OUTPUT_PATH}/ucs__test)
 
 add_executable(vector__test vector__test.cxx)
 target_link_libraries(vector__test qak)
