@@ -89,6 +89,7 @@ namespace permutation_imp {
 		void extend(uint_type n);
 		void swap_two(uint_type ix_a, uint_type ix_b);
 		void rotate(uint_type ix_b, uint_type ix_m, uint_type ix_e);
+		void remove(uint_type ix);
 		void square();
 		void mult_by(index_permutation_imp const & that);
 	};
@@ -182,8 +183,8 @@ namespace permutation_imp {
 
 		//----- Lookup.
 
-		size_type f_at(size_type ix) const { assert(0 <= ix); return from_imp(imp_.f_at(to_imp(ix))); }
-		size_type r_at(size_type ix) const { assert(0 <= ix); return from_imp(imp_.r_at(to_imp(ix))); }
+		size_type f_at(size_type ix) const { assert(0 <= ix && ix < size()); return from_imp(imp_.f_at(to_imp(ix))); }
+		size_type r_at(size_type ix) const { assert(0 <= ix && ix < size()); return from_imp(imp_.r_at(to_imp(ix))); }
 
 		//	The usual array container operators reflect the forward mapping.
 		size_type operator [] (size_type ix) const { return f_at(ix); }
@@ -222,6 +223,14 @@ namespace permutation_imp {
 			assert(             ix_m <= ix_e);
 			assert(                     ix_e <= from_imp(imp_.size()));
 			imp_.rotate(to_imp(ix_b), to_imp(ix_m), to_imp(ix_e));
+		}
+
+		//	Removes the specified index. All higher indexes in the forward and reverse
+		//	direction are shifted down by 1.
+		void remove(size_type ix)
+		{
+			assert(0 <= ix && ix < size());
+			imp_.remove(to_imp(ix));
 		}
 
 		//	Multiplication

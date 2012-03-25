@@ -211,6 +211,37 @@ namespace permutation_imp {
 			r_[f_[ix]] = ix;
 	}
 
+	//-----------------------------------------------------------------------------------------------------------------|
+
+	template <int N>
+	void index_permutation_imp<N>::remove(uint_type ix)
+	{
+		assert(0 <= ix && ix < size());
+
+		uint_type new_size = size() - 1;
+
+		uint_type f_ix = ix;
+		uint_type r_ix = f_[f_ix];
+
+		for (uint_type ix = 0; ix < f_ix; ++ix)
+			if (r_ix < f_[ix])
+				--f_[ix];
+
+		for (uint_type ix = f_ix; ix + 1 < f_.size(); ++ix)
+			f_[ix] = f_[ix + 1] - (r_ix < f_[ix + 1]);
+
+		f_.resize(new_size);
+
+		for (uint_type ix = 0; ix < r_ix; ++ix)
+			if (f_ix < r_[ix])
+				--r_[ix];
+
+		for (uint_type ix = r_ix; ix + 1 < r_.size(); ++ix)
+			r_[ix] = r_[ix + 1] - (f_ix < r_[ix + 1]);
+
+		r_.resize(new_size);
+	}
+
 	//=================================================================================================================|
 
 	//-----------------------------------------------------------------------------------------------------------------|

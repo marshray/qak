@@ -621,6 +621,104 @@ namespace zzz { //==============================================================
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
+	template <class T> void test_index_permutation_remove()
+	{
+		{
+			index_permutation<T> p(1);
+
+			QAK_verify_equal(p.size(), 1);
+			QAK_verify_equal(p.f_at(0), 0); QAK_verify_equal(p.r_at(0), 0);
+
+			p.remove(0);
+
+			QAK_verify_equal(p.size(), 0);
+		} {
+			index_permutation<T> p(3);
+			p.swap_two(1, 2);
+
+			QAK_verify_equal(p.size(), 3);
+			QAK_verify_equal(p.f_at(0), 0); QAK_verify_equal(p.r_at(0), 0);
+			QAK_verify_equal(p.f_at(1), 2); QAK_verify_equal(p.r_at(1), 2);
+			QAK_verify_equal(p.f_at(2), 1); QAK_verify_equal(p.r_at(2), 1);
+
+			p.remove(0);
+
+			QAK_verify_equal(p.size(), 2);
+			QAK_verify_equal(p.f_at(0), 1); QAK_verify_equal(p.r_at(0), 1);
+			QAK_verify_equal(p.f_at(1), 0); QAK_verify_equal(p.r_at(1), 0);
+		} {
+			index_permutation<T> p(3);
+
+			QAK_verify_equal(p.size(), 3);
+			QAK_verify_equal(p.f_at(0), 0); QAK_verify_equal(p.r_at(0), 0);
+			QAK_verify_equal(p.f_at(1), 1); QAK_verify_equal(p.r_at(1), 1);
+			QAK_verify_equal(p.f_at(2), 2); QAK_verify_equal(p.r_at(2), 2);
+
+			p.remove(0);
+
+			QAK_verify_equal(p.size(), 2);
+			QAK_verify_equal(p.f_at(0), 0); QAK_verify_equal(p.r_at(0), 0);
+			QAK_verify_equal(p.f_at(1), 1); QAK_verify_equal(p.r_at(1), 1);
+		} {
+			index_permutation<T> p(3);
+			p.swap_two(0, 1);
+
+			QAK_verify_equal(p.size(), 3);
+			QAK_verify_equal(p.f_at(0), 1); QAK_verify_equal(p.r_at(0), 1);
+			QAK_verify_equal(p.f_at(1), 0); QAK_verify_equal(p.r_at(1), 0);
+			QAK_verify_equal(p.f_at(2), 2); QAK_verify_equal(p.r_at(2), 2);
+
+			p.remove(0);
+
+			QAK_verify_equal(p.size(), 2);
+			QAK_verify_equal(p.f_at(0), 0); QAK_verify_equal(p.r_at(0), 0);
+			QAK_verify_equal(p.f_at(1), 1); QAK_verify_equal(p.r_at(1), 1);
+		} {
+			index_permutation<T> p(3);
+
+			QAK_verify_equal(p.size(), 3);
+			QAK_verify_equal(p.f_at(0), 0); QAK_verify_equal(p.r_at(0), 0);
+			QAK_verify_equal(p.f_at(1), 1); QAK_verify_equal(p.r_at(1), 1);
+			QAK_verify_equal(p.f_at(2), 2); QAK_verify_equal(p.r_at(2), 2);
+
+			p.remove(1);
+
+			QAK_verify_equal(p.size(), 2);
+			QAK_verify_equal(p.f_at(0), 0); QAK_verify_equal(p.r_at(0), 0);
+			QAK_verify_equal(p.f_at(1), 1); QAK_verify_equal(p.r_at(1), 1);
+		} {
+			index_permutation<T> p(3);
+
+			QAK_verify_equal(p.size(), 3);
+			QAK_verify_equal(p.f_at(0), 0); QAK_verify_equal(p.r_at(0), 0);
+			QAK_verify_equal(p.f_at(1), 1); QAK_verify_equal(p.r_at(1), 1);
+			QAK_verify_equal(p.f_at(2), 2); QAK_verify_equal(p.r_at(2), 2);
+
+			p.remove(2);
+
+			QAK_verify_equal(p.size(), 2);
+			QAK_verify_equal(p.f_at(0), 0); QAK_verify_equal(p.r_at(0), 0);
+			QAK_verify_equal(p.f_at(1), 1); QAK_verify_equal(p.r_at(1), 1);
+		} {
+		}
+	}
+
+	QAKtest(index_permutation_remove, "index_permutation remove().")
+	{
+		test_index_permutation_remove<signed char>();
+		test_index_permutation_remove<short int>();
+		test_index_permutation_remove<int>();
+		test_index_permutation_remove<long int>();
+		test_index_permutation_remove<long long int>();
+		test_index_permutation_remove<unsigned char>();
+		test_index_permutation_remove<unsigned short int>();
+		test_index_permutation_remove<unsigned int>();
+		test_index_permutation_remove<unsigned long int>();
+		test_index_permutation_remove<unsigned long long int>();
+	}
+
+	//-----------------------------------------------------------------------------------------------------------------|
+
 
 } // namespace zzz ====================================================================================================|
 #include "qak/test_app_post.hxx"
