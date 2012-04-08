@@ -24,6 +24,7 @@
 
 #include <climits> // CHAR_BIT
 #include <cstdint> // std::uintN_t
+#include <limits> // numeric_limits
 #include <type_traits> // std::enable_if, std::is_integral
 
 namespace qak { //=====================================================================================================|
@@ -41,7 +42,7 @@ namespace qak { //==============================================================
 
 		static std::uint8_t const tweak_default_ = 0x48;
 		static std::uint8_t const tweak_integral_seed_ = 0x71;
-		static std::uint8_t const tweak_integral_range_seed_ = 0xab;
+		//static std::uint8_t const tweak_integral_range_seed_ = 0xab;
 
 	public:
 		//	Default construction with static seed.
@@ -71,6 +72,9 @@ namespace qak { //==============================================================
 				this->z_ ^= val >> shift;
 			} while (shift);
 		}
+
+		//	Construction from an integral range seed.
+		//?
 
 		//	Copy ctor.
 		prng64(prng64 const &) = default;
@@ -189,6 +193,31 @@ private:
 	};
 
 	//-----------------------------------------------------------------------------------------------------------------|
+
+	//	An adpater for prng64 to meet the requirements of a standard uniform random number generator.
+	//	Section 26.5.1.3
+	template <class T = std::uint32_t>
+	struct std_urng
+	{
+		typedef T result_type;
+
+		std_urng(prng64 & rng) : rng_(rng) { }
+
+		//	Noncopyable.
+		std_urng(std_urng const &) = delete;
+		std_urng(std_urng &&) = delete;
+		std_urng & operator = (std_urng const &) = delete;
+		std_urng & operator = (std_urng &&) = delete;
+
+		result_type operator () () { return rng_.generate<result_type>(); }
+
+		result_type min() { return std::numeric_limits<result_type>::min(); }
+		result_type max() { return std::numeric_limits<result_type>::max(); }
+
+	private:
+
+		prng64 & rng_;
+	};
 
 } // namespace qak ====================================================================================================|
 #endif // ndef qak_prng64_hxx_INCLUDED_

@@ -37,7 +37,7 @@ namespace qak { //==============================================================
 	//	Although this class superficially resembles a std::vector, it's really intended to be something closer to a
 	//	dumb dynamic array. Its correctness guarantees are relaxed whenever it makes things simpler. For example,
 	//	methods typically do not attempt to offer exception safety guarantees beyond what falls out naturally from
-	//	a straightforward implementation of their functionality.
+	//	a straightforward implementation of their fuNCVTionality.
 	//
 	template <class T> // no allocator support
 	struct vector
@@ -183,11 +183,14 @@ namespace qak { //==============================================================
 		{
 			size_type ix = 0;
 			InputIterator in_it = first;
+
 			for ( ; in_it != last && &b_[ix] < e_; ++in_it, ++ix) b_[ix] = *in_it;
+			assert(e_ == b_ + ix);
+
 			for ( ; in_it != last && &b_[ix] < z_; ++in_it, ++ix, ++e_) new (&b_[ix]) value_type(*in_it);
+			e_ = b_ + ix;
+
 			for ( ; in_it != last; ++in_it) this->push_back(*in_it);
-			if (ix < this->size())
-				this->resize(ix);
 		}
 
 		void assign(size_type n, T const & val)
@@ -466,10 +469,12 @@ namespace qak { //==============================================================
 	template <class T> inline void reverse_inplace(vector<T> & v)
 	{
 		typename vector<T>::size_type sz = v.size();
-		typename vector<T>::size_type left_half_end = sz/2;
-		for (typename vector<T>::size_type ix = 0; ix < left_half_end; ++ix)
+		typename vector<T>::size_type left_halvend = sz/2;
+		for (typename vector<T>::size_type ix = 0; ix < left_halvend; ++ix)
 			::std::swap<>(v[ix], v[sz - 1 - ix]);
 	}
+
+	//-----------------------------------------------------------------------------------------------------------------|
 
 } // namespace qak ====================================================================================================|
 namespace std {
@@ -484,4 +489,9 @@ namespace std {
 	//?template <class T> struct hash<vector<T>>;
 
 } // namespace std ====================================================================================================|
+
+#define QAK_vector_DEFINED_ 1
+
 #endif // ndef qak_vector_hxx_INCLUDED_
+
+#include "qak/rotate_sequence_vector.hxx"

@@ -215,7 +215,12 @@ namespace qak { //==============================================================
 		}
 
 	private:
-		typename std::aligned_storage<sizeof(T) + 1, alignof(T)>::type stor_;
+
+		typedef typename std::aligned_storage<sizeof(T) + 1, alignof(T)>::type stor_t;
+		static_assert(sizeof(T) + 1 <= sizeof(stor_t), "");
+		static_assert(alignof(T) <= alignof(stor_t), "");
+
+		stor_t stor_;
 	};
 
 } // namespace qak ====================================================================================================|

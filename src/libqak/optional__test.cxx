@@ -1,7 +1,7 @@
 // vim: set ts=4 sw=4 tw=120:
 //=====================================================================================================================|
 //
-//	Copyright (c) 2011, Marsh Ray
+//	Copyright (c) 2011-12, Marsh Ray
 //
 //	Permission to use, copy, modify, and/or distribute this software for any
 //	purpose with or without fee is hereby granted, provided that the above
@@ -21,8 +21,14 @@
 
 #include "qak/optional.hxx"
 
+#include <cstdint> // std::size_t
+#include <utility> // std::pair
+
 #include "qak/test_app_pre.hxx"
 #include "qak/test_macros.hxx"
+
+using std::pair;
+using std::size_t;
 
 namespace zzz { //=====================================================================================================|
 
@@ -96,6 +102,27 @@ namespace zzz { //==============================================================
 		oi0.swap(oi1);
 		QAK_verify( !oi0 );
 		QAK_verify( oi1 && 1 == *oi1 );
+	}
+
+	QAKtest_anon()
+	{
+		qak::optional<pair<size_t, size_t>> oi0;
+		QAK_verify( !oi0 );
+
+		oi0 = pair<size_t, size_t>(3, 4);
+		QAK_verify( oi0 );
+		QAK_verify_equal( oi0->first, 3 );
+		QAK_verify_equal( oi0->second, 4 );
+
+		qak::optional<pair<size_t, size_t>> oi1(oi0);
+		QAK_verify( oi1 );
+		QAK_verify_equal( oi1->first, 3 );
+		QAK_verify_equal( oi1->second, 4 );
+
+		qak::optional<pair<size_t, size_t>> oi2(std::move(oi1));
+		QAK_verify( oi2 );
+		QAK_verify_equal( oi2->first, 3 );
+		QAK_verify_equal( oi2->second, 4 );
 	}
 
 } // namespace zzz ====================================================================================================|

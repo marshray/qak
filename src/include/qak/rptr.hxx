@@ -66,7 +66,7 @@ namespace qak_rptr_imp_ { // ===================================================
 
 	//=================================================================================================================|
 
-	//	Inherit from qak::rpointee to enable management by rptr.
+	//	Inherit from qak::rpointee_base to enable management by rptr.
 	//	It's in a special namespace to prevent ADL surprises with the derived types.
 	//	It will cause pointee classes to have a vtable and be noncopyable and nonmoveable.
 	//	Destruction will be performed via the virtual destructor.

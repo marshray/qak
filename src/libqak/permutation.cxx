@@ -21,6 +21,8 @@
 
 #include "qak/permutation.hxx"
 
+#include "qak/rotate_sequence.hxx"
+
 #include <cstring> // memcpy
 
 namespace qak { //=====================================================================================================|
@@ -129,6 +131,9 @@ namespace permutation_imp {
 	{
 		assert(0 <= ix_b && ix_b <= ix_m && ix_m <= ix_e && ix_e <= f_.size());
 
+#if 1
+		rotate_sequence(f_, ix_b, ix_m, ix_e);
+#elif 0
 		//?	OPT See the very nice section from Programming Pearls (available online) with several other
 		//	algorithms benchmarked for permuting the forward vector.
 
@@ -162,6 +167,8 @@ namespace permutation_imp {
 				std::memcpy(&f_[ix_b + sz_r], &v_tmp[0], sz_r*sizeof(typename vector_type::value_type));
 			}
 		}
+#elif 0
+#endif
 
 		//	Fix up the reverse mapping.
 		//?	OPT There might be some somewhat faster ways of doing this.
@@ -227,7 +234,7 @@ namespace permutation_imp {
 			if (r_ix < f_[ix])
 				--f_[ix];
 
-		for (uint_type ix = f_ix; ix + 1 < f_.size(); ++ix)
+		for (uint_type ix = f_ix; ix + 1u < f_.size(); ++ix)
 			f_[ix] = f_[ix + 1] - (r_ix < f_[ix + 1]);
 
 		f_.resize(new_size);
@@ -236,7 +243,7 @@ namespace permutation_imp {
 			if (f_ix < r_[ix])
 				--r_[ix];
 
-		for (uint_type ix = r_ix; ix + 1 < r_.size(); ++ix)
+		for (uint_type ix = r_ix; ix + 1u < r_.size(); ++ix)
 			r_[ix] = r_[ix + 1] - (f_ix < r_[ix + 1]);
 
 		r_.resize(new_size);

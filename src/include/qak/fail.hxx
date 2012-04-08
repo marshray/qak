@@ -26,6 +26,38 @@ namespace qak { //==============================================================
 
 	//=================================================================================================================|
 	//
+	//-	Compile-time fail with type or integral constant expression info.
+
+	namespace ct_die_imp_ {
+
+		struct undef_elsewhere { };
+
+		template <class T> struct QAK_CTMSG_TYPE_IS;
+		template <> struct QAK_CTMSG_TYPE_IS<undef_elsewhere> { enum { value = 1 }; };
+
+		template <long ICE, class T = undef_elsewhere> struct QAK_CTMSG_ICE_IS;
+		template <> struct QAK_CTMSG_ICE_IS<0, undef_elsewhere> { enum { value = 1 }; };
+
+	} // QAK..ct_die_imp_
+
+	//	Compile-time message with type.
+	//
+	#define QAK_CTMSG_TYPE(t) enum QAK_ctmsg_enum { \
+		qak_ctmsg_en = sizeof(::qak::ct_die_imp_::QAK_CTMSG_TYPE_IS<t>) }
+
+	//	Compile-time message with type from an expression.
+	//
+	template <class T> void QAK_CTMSG_TYPE_OF_EXPR(T t) { QAK_CTMSG_TYPE(T); }
+
+	//	Compile-time message with integral constant expression.
+	//
+	#define QAK_CTMSG_ICE(i) enum QAK_ctmsg_enum { \
+		qak_ctmsg_en = sizeof(::qak::ct_die_imp_::QAK_CTMSG_ICE_IS<(i)>) \
+	}; \
+	QAK_ctmsg_enum ctmsg_enum;
+
+	//=================================================================================================================|
+	//
 	//-	Run time fail.
 
 	//	General-purpose throw function.

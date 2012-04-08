@@ -17,74 +17,26 @@
 //
 //=====================================================================================================================|
 //
-//	hash__test.cxx
+//	rotate_sequence__test.cxx
 
-#include "qak/hash.hxx"
+#include "qak/rotate_sequence.hxx"
 
 #include "qak/test_app_pre.hxx"
 #include "qak/test_macros.hxx"
 
 namespace zzz { //=====================================================================================================|
 
-	using qak::hash;
-
-	QAKtest(ctor_builtin_types)
+	QAKtest_anon()
 	{
-		std::size_t h = 0;
-
-		//	Construction of basic types.
-		{
-			h |= hash<bool>()(0);
-		} {
-			h |= hash<char>()(0);
-		} {
-			h |= hash<signed char>()(0);
-		} {
-			h |= hash<unsigned char>()(0);
-		} {
-			h |= hash<char16_t>()(0);
-		} {
-			h |= hash<char32_t>()(0);
-		} {
-			h |= hash<wchar_t>()(0);
-		} {
-			h |= hash<short>()(0);
-		} {
-			h |= hash<unsigned short>()(0);
-		} {
-			h |= hash<int>()(0);
-		} {
-			h |= hash<unsigned int>()(0);
-		} {
-			h |= hash<long>()(0);
-		} {
-			h |= hash<unsigned long>()(0);
-		} {
-			h |= hash<long long>()(0);
-		} {
-			h |= hash<unsigned long long>()(0);
-		} {
-			h |= hash<float>()(0);
-		} {
-			h |= hash<double>()(0);
-		} {
-			h |= hash<long double>()(0);
-		}
-
-		QAK_verify_notequal(h, 0);
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
-	QAKtest(sanity_checks)
+	QAKtest_anon()
 	{
-		QAK_verify_equal(hash<bool>()(false), hash<bool>()(false));
-		QAK_verify_equal(hash<bool>()(true), hash<bool>()(true));
-		QAK_verify_notequal(hash<bool>()(false), hash<bool>()(true));
-
-		QAK_verify_equal(hash<int>()(37), hash<int>()(37));
-		QAK_verify_notequal(hash<int>()(37), hash<int>()(38));
 	}
+
+	//? TODO test
 
 } // namespace zzz ====================================================================================================|
 #include "qak/test_app_post.hxx"

@@ -165,6 +165,8 @@ namespace zzz { //==============================================================
 	}
 
 	//? test move assignment
+	//? test reverse_inplace
+	//? test rotate_inplace
 
 } // namespace zzz ====================================================================================================|
 #include "qak/test_app_post.hxx"

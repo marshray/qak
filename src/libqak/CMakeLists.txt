@@ -25,6 +25,7 @@ add_library( qak STATIC
 	now.cxx
 	permutation.cxx
 	rptr.cxx
+	rotate_sequence.cxx
 	stopwatch.cxx
 	thread.cxx
 	thread_group.cxx
@@ -83,6 +84,10 @@ add_test(permutation__test ${EXECUTABLE_OUTPUT_PATH}/permutation__test)
 add_executable(prng64__test prng64__test.cxx)
 target_link_libraries(prng64__test qak)
 add_test(prng64__test ${EXECUTABLE_OUTPUT_PATH}/prng64__test)
+
+add_executable(rotate_sequence__test rotate_sequence__test.cxx)
+target_link_libraries(rotate_sequence__test qak)
+add_test(rotate_sequence__test ${EXECUTABLE_OUTPUT_PATH}/rotate_sequence__test)
 
 add_executable(rptr__test rptr__test.cxx)
 target_link_libraries(rptr__test qak)
