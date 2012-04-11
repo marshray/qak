@@ -56,7 +56,7 @@ namespace qak { //==============================================================
 			seed_T seed,
 			typename std::enable_if<
 					std::is_integral<seed_T>::value,
-				void>::type * dummy = 0
+				void>::type * = 0
 		) :
 			z_(tweak_integral_seed_)
 		{

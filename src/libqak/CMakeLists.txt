@@ -27,6 +27,7 @@ add_library( qak STATIC
 	rptr.cxx
 	rotate_sequence.cxx
 	stopwatch.cxx
+	static_data.cxx
 	thread.cxx
 	thread_group.cxx
 	ucs.cxx
