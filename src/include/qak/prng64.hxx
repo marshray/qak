@@ -24,7 +24,7 @@
 
 #include <climits> // CHAR_BIT
 #include <cstdint> // std::uintN_t
-#include <limits> // numeric_limits
+#include <limits> // std::numeric_limits
 #include <type_traits> // std::enable_if, std::is_integral
 
 namespace qak { //=====================================================================================================|
@@ -41,10 +41,21 @@ namespace qak { //==============================================================
 	private:
 
 		static std::uint8_t const tweak_default_ = 0x48;
+		static std::uint8_t const tweak_seeder_seed_ = 0x71;
 		static std::uint8_t const tweak_integral_seed_ = 0x71;
 		//static std::uint8_t const tweak_integral_range_seed_ = 0xab;
 
 	public:
+
+		//	Construction by seeding from another prng64.
+		static prng64 seed_from(prng64 & seeder)
+		{
+			std::uint64_t seed = seeder.generate<std::uint64_t>();
+			prng64 p;
+			p.z_ = seed + tweak_seeder_seed_;
+			return p;
+		}
+
 		//	Default construction with static seed.
 		prng64() :
 			z_(tweak_default_)

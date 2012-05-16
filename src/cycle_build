@@ -92,6 +92,8 @@ function buildit
 
 while true; do
 	buildit && echo -n ':-) ---- build successful ----' || echo ':-P **** build failed ****'
+	if [[ ! -e `which inotifywait` ]]; then echo; echo 'exiting, no inotifywait'; exit 1; fi
+
 	if inotifywait -r -e modify "$QAK_SRC_DIR" >>/dev/null 2>&1 ; then
 		echo -e '\nChange detected!'
 		sleep 0.5

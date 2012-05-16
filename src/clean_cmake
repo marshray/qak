@@ -22,10 +22,14 @@ set -o errexit
 
 #	Specify the compiler to use.
 #
-#GCC_VER=4.6.2
 GCC_VER=4.7.0
 C_COMPILER=gcc-$GCC_VER
 CXX_COMPILER=g++-$GCC_VER
+
+# This madness is required by Debian/Ubuntu's move to mutiarch
+export LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
+export C_INCLUDE_PATH=/usr/include/x86_64-linux-gnu
+export CPLUS_INCLUDE_PATH=/usr/include/x86_64-linux-gnu
 
 #	Command-line options.
 unset -v NO_TEST

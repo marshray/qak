@@ -68,6 +68,10 @@ QAK_BUILD_DIR="$QAK_BUILD_ROOT_DIR/$BUILD_TYPE"
 echo "QAK_BUILD_ROOT_DIR=$QAK_BUILD_ROOT_DIR"
 echo "QAK_BUILD_DIR=$QAK_BUILD_DIR"
 
+# This madness is required by Debian/Ubuntu's move to mutiarch
+export LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
+export C_INCLUDE_PATH=/usr/include/x86_64-linux-gnu
+export CPLUS_INCLUDE_PATH=/usr/include/x86_64-linux-gnu
 
 SUCCESS_FLAG=$QAK_BUILD_DIR/success.out
 if [[ -f "$SUCCESS_FLAG" ]]; then rm "$SUCCESS_FLAG"; fi
