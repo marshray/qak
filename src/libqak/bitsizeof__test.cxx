@@ -41,6 +41,8 @@ namespace zzz { //==============================================================
 		float f = 0;
 		QAK_verify_equal( qak::bitsizeof(f), sizeof(f)*CHAR_BIT );
 
+#if !QAK_COMPILER_FAILS_CONSTEXPR // compiler supports constexpr
+
 		//	Verify that bitsizeof is a compile-time constexpr.
 
 		typedef std::integral_constant<std::size_t, qak::bitsizeof<short>()> ice_bitsizeof_short;
@@ -48,6 +50,9 @@ namespace zzz { //==============================================================
 
 		typedef std::integral_constant<std::size_t, qak::bitsizeof<>(f)> ice_bitsizeof_f;
 		QAK_verify_equal( ice_bitsizeof_f::value, sizeof(f)*CHAR_BIT );
+
+#else // workaround for broken compilers that don't support constexpr
+#endif // of workaround for broken compilers that don't support constexpr
 	}
 
 } // namespace zzz ====================================================================================================|

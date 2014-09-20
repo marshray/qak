@@ -50,14 +50,26 @@ namespace zzz { //==============================================================
 			QAK_verify( rb_ );
 			return true;
 		}
-	};
+
+/*	private:
+		test_base(test_base const &); // unimplemented
+		test_base(test_base &&); // unimplemented
+		test_base & operator = (test_base const &); // unimplemented
+		test_base & operator = (test_base &&); // unimplemented
+*/	};
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
 	struct test_derived : test_base
 	{
 		test_derived(bool & rb_in) : test_base(rb_in) { }
-	};
+
+/*	private:
+		test_derived(test_derived const &); // unimplemented
+		test_derived(test_derived &&); // unimplemented
+		test_derived & operator = (test_derived const &); // unimplemented
+		test_derived & operator = (test_derived &&); // unimplemented
+*/	};
 
 	//-----------------------------------------------------------------------------------------------------------------|
 

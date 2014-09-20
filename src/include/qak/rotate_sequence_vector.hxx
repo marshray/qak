@@ -22,6 +22,8 @@
 #ifndef QAK_rotate_sequence_vector_DEFINED_
 #if defined(QAK_rotate_sequence_DEFINED_) && defined(QAK_vector_DEFINED_)
 
+#include "qak/config.hxx"
+
 namespace qak { //=====================================================================================================|
 
 	template <class T> inline

@@ -24,6 +24,9 @@
 #ifndef qak_optional_hxx_INCLUDED_
 #define qak_optional_hxx_INCLUDED_
 
+#include "qak/config.hxx"
+#include "qak/alignof.hxx"
+
 #include <cassert>
 #include <new>
 #include <type_traits> // std::aligned_storage
@@ -31,13 +34,29 @@
 
 namespace qak { //=====================================================================================================|
 
+	template <class T> struct optional;
+
+	template <class T, class U> struct optional_as_s
+	{
+		//static_assert(false, "this code should never be generated");
+	};
+
+	//	Partial specialization for as<bool>
+	template <class T> struct optional_as_s<T, bool>
+	{
+		static bool f(optional<T> const & opt)
+		{
+			return !! reinterpret_cast<char const *>(&opt.stor_)[sizeof(T)];
+		}
+	};
+
 	template <class T>
 	struct optional
 	{
 		static_assert(!std::is_reference<T>::value, "qak::optional does not support reference types.");
 
 		//	Default ctor.
-		optional() noexcept
+		optional() QAK_noexcept
 		{
 			reinterpret_cast<char *>(&stor_)[sizeof(T)] = 0;
 		}
@@ -52,6 +71,7 @@ namespace qak { //==============================================================
 			}
 			else
 			{
+				//new (&this->stor_) T(*that);
 				new (&this->stor_) T(*reinterpret_cast<T const *>(&that.stor_));
 				reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
 			}
@@ -66,6 +86,7 @@ namespace qak { //==============================================================
 			}
 			else
 			{
+				//new (&this->stor_) T(*that);
 				new (&this->stor_) T(*reinterpret_cast<U const *>(&that.stor_));
 				reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
 			}
@@ -75,9 +96,16 @@ namespace qak { //==============================================================
 
 		optional(optional<T> && that)
 		{
-			new (&this->stor_) T(std::move(*reinterpret_cast<T *>(&that.stor_)));
-			reinterpret_cast<char *>(&this->stor_)[sizeof(T)] = 1;
-			that.reset();
+			if (!that)
+			{
+				reinterpret_cast<char *>(&stor_)[sizeof(T)] = 0;
+			}
+			else
+			{
+				new (&this->stor_) T(std::move(*reinterpret_cast<T *>(&that.stor_)));
+				reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
+				that.reset();
+			}
 		}
 
 		//	Non-explicit value ctor.
@@ -109,7 +137,7 @@ namespace qak { //==============================================================
 			if (this != &that)
 			{
 				optional<T> tmp(that);
-				this->swap.tmp();
+				this->swap(tmp);
 			}
 			return *this;
 		}
@@ -143,10 +171,38 @@ namespace qak { //==============================================================
 			return *this;
 		}
 
+		template <class V>
+		void assign(V const & val)
+		{
+			this->reset();
+			new (&this->stor_) T(val);
+			reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
+		}
+
+		//	Retrieve value (i.e., the bool indicating if nonempty)
+
+		template <class U> U    as() const { return optional_as_s<T, U>::f(*this); }
+//		template <class U> U    as() const;
+//		template <>        bool as<bool>() const;
+
+#if !QAK_COMPILER_FAILS_EXPLICIT_CONVERSIONS // supports explicit conversion operators
+
 		explicit operator bool() const
 		{
-			return reinterpret_cast<char const *>(&stor_)[sizeof(T)];
+			return this->as<bool>();
 		}
+
+#else // workaround for compilers that don't support explicit conversion operators
+
+	private:
+		struct inaccessible_t_ { int ina; };
+	public:
+		operator int inaccessible_t_::*() const
+		{
+			return this->as<bool>() ? &inaccessible_t_::ina : 0;
+		}
+
+#endif // of workaround for compilers that don't support explicit conversion operators
 
 		void reset()
 		{
@@ -215,13 +271,39 @@ namespace qak { //==============================================================
 		}
 
 	private:
+		template <class U, class T> friend struct optional_as_s;
+
+#if 1
+		typedef typename std::aligned_storage<
+				sizeof(T) + 1,
+				qak::alignof_t<T>::value
+			>::type stor_t;
+
+		static_assert(sizeof(T) + 1 <= sizeof(stor_t), "");
+		static_assert(qak::alignof_t<T>::value <= qak::alignof_t<stor_t>::value, "");
+
+#elif !QAK_COMPILER_FAILS_ALIGNOF_OPERATOR // compiler supports alignof operator
 
 		typedef typename std::aligned_storage<sizeof(T) + 1, alignof(T)>::type stor_t;
 		static_assert(sizeof(T) + 1 <= sizeof(stor_t), "");
 		static_assert(alignof(T) <= alignof(stor_t), "");
 
+#else // workaround for compilers that don't support alignof operator yet
+
+		typedef typename std::aligned_storage<sizeof(T) + 1, std::alignment_of<T>::value>::type stor_t;
+		static_assert(sizeof(T) + 1 <= sizeof(stor_t), "");
+		static_assert(std::alignment_of<T>::value <= std::alignment_of<stor_t>::value, "");
+
+#endif // of workaround for compilers that don't support alignof operator yet
+
 		stor_t stor_;
 	};
+
+//	template <class T>
+//	template <>
+//	struct optional<T>::as_s<bool> {
+//		static bool f(optional<T> const & self) { return reinterpret_cast<char const *>(&self.stor_)[sizeof(T)]; }
+//	};
 
 } // namespace qak ====================================================================================================|
 namespace std {

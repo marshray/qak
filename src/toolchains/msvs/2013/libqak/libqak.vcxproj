@@ -1,0 +1,209 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{D82C0BD0-A052-490D-B1E8-14BCEA43FB05}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>libqak</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(SolutionDir)lib.props" />
+    <Import Project="$(SolutionDir)target-machine-x86.props" />
+    <Import Project="..\debug.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(SolutionDir)lib.props" />
+    <Import Project="$(SolutionDir)target-machine-x64.props" />
+    <Import Project="..\debug.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(SolutionDir)lib.props" />
+    <Import Project="$(SolutionDir)target-machine-x86.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(SolutionDir)lib.props" />
+    <Import Project="$(SolutionDir)target-machine-x64.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IntDir>$(aaaIntDir)</IntDir>
+    <OutDir>$(aaaLibOutDir)</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IntDir>$(aaaIntDir)</IntDir>
+    <OutDir>$(aaaLibOutDir)</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IntDir>$(aaaIntDir)</IntDir>
+    <OutDir>$(aaaLibOutDir)</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(aaaLibOutDir)</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <ErrorReporting>None</ErrorReporting>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib />
+    <Lib />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib />
+    <Lib />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib />
+    <Lib />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib />
+    <Lib />
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\libqak\atomic.cxx">
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</DisableLanguageExtensions>
+      <DisableLanguageExtensions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</DisableLanguageExtensions>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\libqak\host_info.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\io\io.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\mutex.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\now.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\permutation.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\rotate_sequence.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\rptr.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\static_data.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\stopwatch.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\thread.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\threadls.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\thread_group.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\ucs.cxx" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\include\qak\abs.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\alignof.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\atomic.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\bitsizeof.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\config.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\fail.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\hash.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\host_info.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\io.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\io\io.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\is_memcpyable.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\min_max.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\mutex.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\now.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\optional.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\permutation.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\prng64.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\rotate_sequence.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\rotate_sequence_vector.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\rptr.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\static_data.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\stopwatch.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\test_app_post.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\test_app_pre.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\test_macros.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\thread.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\threadls.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\thread_group.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\ucs.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\vector.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\workarounds\alignof_operator.hxx" />
+    <ClInclude Include="..\..\..\..\platforms\win32\win32_lite.hxx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\..\..\libqak\CMakeLists.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

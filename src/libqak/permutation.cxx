@@ -21,6 +21,7 @@
 
 #include "qak/permutation.hxx"
 
+#include "qak/fail.hxx"
 #include "qak/rotate_sequence.hxx"
 
 #include <cstring> // memcpy
@@ -52,9 +53,9 @@ namespace permutation_imp {
 	template <int N>
 	typename index_permutation_imp<N>::uint_type index_permutation_imp<N>::f_at(uint_type ix) const
 	{
-		auto sz = f_.size();
-		assert(sz == r_.size());
-		assert(ix < sz);
+		assert(f_.size() == r_.size());
+		assert(ix < f_.size());
+
 		return f_[ix];
 	}
 
@@ -63,9 +64,8 @@ namespace permutation_imp {
 	template <int N>
 	typename index_permutation_imp<N>::uint_type index_permutation_imp<N>::r_at(uint_type ix) const
 	{
-		auto sz = r_.size();
-		assert(sz == f_.size());
-		assert(ix < sz);
+		assert(r_.size() == f_.size());
+		assert(ix < r_.size());
 		return r_[ix];
 	}
 
@@ -97,11 +97,22 @@ namespace permutation_imp {
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
+	//? TODO move to a common header file?
+	template <class T>
+	T sum_overflow_check(T sz, T n)
+	{
+		throw_if(false); //? TODO actually implement the check :-)
+
+		return static_cast<T>(sz + n);
+	};
+
+	//-----------------------------------------------------------------------------------------------------------------|
+
 	template <int N>
 	void index_permutation_imp<N>::extend(uint_type n)
 	{
 		uint_type sz = size();
-		uint_type new_sz = sz + n;
+		uint_type new_sz = sum_overflow_check<uint_type>(sz, n); // sz + n
 		f_.reserve(new_sz);
 		r_.reserve(new_sz);
 		for (uint_type ix = sz; ix < new_sz; ++ix)
@@ -225,7 +236,7 @@ namespace permutation_imp {
 	{
 		assert(0 <= ix && ix < size());
 
-		uint_type new_size = size() - 1;
+		uint_type new_size = size() - 1u;
 
 		uint_type f_ix = ix;
 		uint_type r_ix = f_[f_ix];
@@ -235,7 +246,7 @@ namespace permutation_imp {
 				--f_[ix];
 
 		for (uint_type ix = f_ix; ix + 1u < f_.size(); ++ix)
-			f_[ix] = f_[ix + 1] - (r_ix < f_[ix + 1]);
+			f_[ix] = f_[ix + 1u] - (r_ix < f_[ix + 1u] ? 1u : 0u);
 
 		f_.resize(new_size);
 
@@ -244,7 +255,7 @@ namespace permutation_imp {
 				--r_[ix];
 
 		for (uint_type ix = r_ix; ix + 1u < r_.size(); ++ix)
-			r_[ix] = r_[ix + 1] - (f_ix < r_[ix + 1]);
+			r_[ix] = r_[ix + 1u] - (f_ix < r_[ix + 1u] ? 1u : 0u);
 
 		r_.resize(new_size);
 	}
@@ -259,7 +270,9 @@ namespace permutation_imp {
 	template struct index_permutation_imp<1>;
 	template struct index_permutation_imp<2>;
 	template struct index_permutation_imp<4>;
+#if 64 <= QAK_pointer_bits
 	template struct index_permutation_imp<8>;
+#endif
 
 } // namespace permutation_imp
 } // namespace qak ====================================================================================================|

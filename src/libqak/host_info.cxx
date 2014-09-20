@@ -27,7 +27,13 @@
 #include "qak/fail.hxx"
 
 #if QAK_POSIX
+
 #	include <unistd.h> // sysconf
+
+#elif QAK_WIN32
+
+#	include "../platforms/win32/win32_lite.hxx"
+
 #endif
 
 namespace qak { namespace host_info { //===============================================================================|
@@ -71,6 +77,14 @@ namespace qak { namespace host_info { //========================================
 
 		return u_cnt_cpus_configured;
 
+#elif QAK_WIN32
+
+		win32::SYSTEM_INFO si;
+		win32::GetSystemInfo(&si);
+
+		assert(0 < si.dwNumberOfProcessors);
+
+		return si.dwNumberOfProcessors;
 #else
 		throw 0;
 #endif
@@ -104,8 +118,28 @@ namespace qak { namespace host_info { //========================================
 
 		return u_cnt_cpus_available;
 
+#elif QAK_WIN32
+
+		win32::DWORD_PTR processMask = 0;
+		win32::DWORD_PTR systemMask = 0;
+		win32::BOOL success = win32::GetProcessAffinityMask(win32::GetCurrentProcess(), &processMask, &systemMask);
+		throw_unless(success && (systemMask & processMask) != 0);
+
+		win32::DWORD_PTR availMask = processMask & systemMask;
+
+		unsigned on_bits = 0;
+		while (availMask)
+		{
+			on_bits += availMask & 1;
+			availMask >>= 1;
+		}
+
+		return on_bits;
+
 #else
-		throw 0;
+
+		return cnt_cpus_configured();
+
 #endif
 	}
 

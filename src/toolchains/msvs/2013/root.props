@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <aaaAboveRepos>$(SolutionDir)..\..\..\..\..\</aaaAboveRepos>
+    <aaaPlatformToolset>$(aaaAboveRepos)msvc-$(PlatformToolset)\</aaaPlatformToolset>
+    <aaaLibOutDir>$(aaaPlatformToolset)lib-out\$(PlatformShortName)-$(Configuration)\</aaaLibOutDir>
+    <aaaTestExeOutDir>$(aaaPlatformToolset)test-exe-out\$(PlatformShortName)-$(Configuration)\</aaaTestExeOutDir>
+    <aaaExeOutDir>$(aaaPlatformToolset)exe-out\$(PlatformShortName)-$(Configuration)\</aaaExeOutDir>
+    <aaaIntDir>$(aaaPlatformToolset)intm\$(PlatformShortName)-$(Configuration)\$(ProjectName)\</aaaIntDir>
+    <MinimalCoreWin>true</MinimalCoreWin>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir>::override::me::</OutDir>
+    <IntDir>$(aaaIntDir)</IntDir>
+    <TargetExt>
+    </TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
+      <WarningLevel>Level4</WarningLevel>
+      <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SDLCheck>true</SDLCheck>
+      <PrecompiledHeaderFile />
+      <PrecompiledHeaderOutputFile />
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <ErrorReporting>None</ErrorReporting>
+      <PreprocessorDefinitions>WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
+      <TargetMachine>NotSet</TargetMachine>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <Lib>
+      <OutputFile>$(aaaLibOutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="aaaAboveRepos">
+      <Value>$(aaaAboveRepos)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="aaaPlatformToolset">
+      <Value>$(aaaPlatformToolset)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="aaaLibOutDir">
+      <Value>$(aaaLibOutDir)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="aaaTestExeOutDir">
+      <Value>$(aaaTestExeOutDir)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="aaaExeOutDir">
+      <Value>$(aaaExeOutDir)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="aaaIntDir">
+      <Value>$(aaaIntDir)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="MinimalCoreWin">
+      <Value>$(MinimalCoreWin)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

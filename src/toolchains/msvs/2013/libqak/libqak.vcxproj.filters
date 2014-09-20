@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\libqak\permutation.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\atomic.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\host_info.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\mutex.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\now.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\rotate_sequence.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\rptr.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\static_data.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\stopwatch.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\thread.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\ucs.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\thread_group.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\threadls.cxx" />
+    <ClCompile Include="..\..\..\..\libqak\io\io.cxx">
+      <Filter>io</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\include\qak\min_max.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\bitsizeof.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\config.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\fail.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\hash.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\host_info.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\is_memcpyable.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\mutex.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\now.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\optional.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\permutation.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\prng64.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\rotate_sequence.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\rotate_sequence_vector.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\rptr.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\static_data.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\stopwatch.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\test_app_post.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\test_app_pre.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\test_macros.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\thread.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\thread_group.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\ucs.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\vector.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\atomic.hxx" />
+    <ClInclude Include="..\..\..\..\platforms\win32\win32_lite.hxx">
+      <Filter>platforms\win32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\include\qak\abs.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\threadls.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\io.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\io\io.hxx">
+      <Filter>io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\include\qak\alignof.hxx" />
+    <ClInclude Include="..\..\..\..\include\qak\workarounds\alignof_operator.hxx">
+      <Filter>workarounds</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\..\..\libqak\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="platforms">
+      <UniqueIdentifier>{38716901-bac5-425a-8ac2-447a05e794e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="platforms\win32">
+      <UniqueIdentifier>{73168bdc-908f-44d6-a171-36d9878dc68f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="io">
+      <UniqueIdentifier>{8089d946-d8b2-4d6a-960e-e963bf5e330c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="workarounds">
+      <UniqueIdentifier>{587374db-7f0d-4d95-9c00-44abfa1e513a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

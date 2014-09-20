@@ -22,6 +22,10 @@
 #ifndef qak_vector_hxx_INCLUDED_
 #define qak_vector_hxx_INCLUDED_
 
+#include "qak/config.hxx"
+#include "qak/min_max.hxx"
+#include "qak/alignof.hxx"
+
 #include <cassert>
 #include <cstdint>
 //#include <initializer_list>
@@ -29,8 +33,6 @@
 #include <new>
 #include <type_traits> // std::aligned_storage
 #include <utility> // std::move
-
-#include "qak/min_max.hxx"
 
 namespace qak { //=====================================================================================================|
 
@@ -73,7 +75,7 @@ namespace qak { //==============================================================
 				return 0;
 		}
 
-		typedef typename std::aligned_storage<sizeof(T), alignof(T)>::type storage_type_;
+		typedef typename std::aligned_storage<sizeof(T), QAK_alignof_t(T)>::type storage_type_;
 
 	public:
 
@@ -222,27 +224,27 @@ namespace qak { //==============================================================
 
 		//?void assign(std::initializer_list<T> il);
 
-		iterator begin() noexcept { return b_; }
-		const_iterator begin() const noexcept { return b_; }
-		const_iterator cbegin() const noexcept { return b_; }
+		iterator begin() QAK_noexcept { return b_; }
+		const_iterator begin() const QAK_noexcept { return b_; }
+		const_iterator cbegin() const QAK_noexcept { return b_; }
 
-		iterator end() noexcept { return e_; }
-		const_iterator end() const noexcept { return e_; }
-		const_iterator cend() const noexcept { return e_; }
+		iterator end() QAK_noexcept { return e_; }
+		const_iterator end() const QAK_noexcept { return e_; }
+		const_iterator cend() const QAK_noexcept { return e_; }
 
-		//?reverse_iterator rbegin() noexcept;
-		//?const_reverse_iterator rbegin() const noexcept;
-		//?const_reverse_iterator crbegin() const noexcept;
-		//?reverse_iterator rend() noexcept;
-		//?const_reverse_iterator rend() const noexcept;
-		//?const_reverse_iterator crend() const noexcept;
+		//?reverse_iterator rbegin() QAK_noexcept;
+		//?const_reverse_iterator rbegin() const QAK_noexcept;
+		//?const_reverse_iterator crbegin() const QAK_noexcept;
+		//?reverse_iterator rend() QAK_noexcept;
+		//?const_reverse_iterator rend() const QAK_noexcept;
+		//?const_reverse_iterator crend() const QAK_noexcept;
 
-		size_type size() const noexcept
+		size_type size() const QAK_noexcept
 		{
-			return e_ - b_;
+			return static_cast<size_type>(e_ - b_);
 		}
 
-		constexpr size_type max_size()
+		QAK_MAYBE_constexpr size_type max_size()
 		{
 			return std::numeric_limits<difference_type>::max();
 		}
@@ -289,12 +291,12 @@ namespace qak { //==============================================================
 
 		//?void resize(size_type sz, const T & c);
 
-		size_type capacity() const noexcept
+		size_type capacity() const QAK_noexcept
 		{
-			return z_ - b_;
+			return static_cast<size_type>(z_ - b_);
 		}
 
-		bool empty() const noexcept { return b_ == e_; }
+		bool empty() const QAK_noexcept { return b_ == e_; }
 
 		void reserve(size_type sz)
 		{
@@ -376,8 +378,8 @@ namespace qak { //==============================================================
 			return *(e_ - 1);
 		}
 
-		T * data() noexcept { return b_; }
-		T const * data() const noexcept { return b_; }
+		T * data() QAK_noexcept { return b_; }
+		T const * data() const QAK_noexcept { return b_; }
 
 		//?template <class... Args> void emplace_back(Args && ... args);
 
@@ -438,7 +440,7 @@ namespace qak { //==============================================================
 			{ pointer tmp = this->z_; this->z_ = that.z_; that.z_ = tmp; }
 		}
 
-		void clear() noexcept
+		void clear() QAK_noexcept
 		{
 			//	Not changing the capacity. Don't think this is required behavior, so it could change.
 			while (e_ != b_)

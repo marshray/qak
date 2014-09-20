@@ -24,6 +24,8 @@
 #else
 #define qak_test_app_post_hxx_INCLUDED_
 
+#include "qak/config.hxx"
+
 #include <cstdlib> // EXIT_FAILURE, EXIT_SUCCESS
 #include <cstdio>
 #include <exception>
@@ -49,7 +51,8 @@ namespace qak_test_ {
 		//	Sort g_p_tests by line number descending.
 		//	List insertion sort via Wikipedia.
 		qak_test_base_ * p_test_sorted = 0;
-		for (qak_test_base_ * ptest = 0; (ptest = g_p_tests) && (g_p_tests = ptest->cdr_), ptest; )
+
+		for (qak_test_base_ * ptest = 0; 0 != (ptest = g_p_tests) && 0 != (g_p_tests = ptest->cdr_), ptest; )
 		{
 			qak_test_base_ * * p_p_trail = &p_test_sorted;
 			for (;;)
@@ -67,7 +70,7 @@ namespace qak_test_ {
 
 		unsigned cnt_succeeded = 0;
 		unsigned cnt_failed = 0;
-		for (qak_test_base_ * ptest = 0; (ptest = p_test_sorted) && (p_test_sorted = ptest->cdr_), ptest; )
+		for (qak_test_base_ * ptest = 0; 0 != (ptest = p_test_sorted) && 0 != (p_test_sorted = ptest->cdr_), ptest; )
 		{
 			qak_test_base_ const & ti = *ptest;
 

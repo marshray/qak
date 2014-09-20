@@ -1,7 +1,7 @@
 #!/bin/bash
 #=================================================================================================|
 #
-#   Copyright (c) 2011, Marsh Ray
+#   Copyright (c) 2011-2013, Marsh Ray
 #
 #   Permission to use, copy, modify, and/or distribute this software for any
 #   purpose with or without fee is hereby granted, provided that the above
@@ -20,30 +20,14 @@
 set -o errexit
 #set -o xtrace
 
-#	Specify the compiler to use.
-#
-GCC_VER=4.7.0
-C_COMPILER=gcc-$GCC_VER
-CXX_COMPILER=g++-$GCC_VER
-
-# This madness is required by Debian/Ubuntu's move to mutiarch
-export LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
-export C_INCLUDE_PATH=/usr/include/x86_64-linux-gnu
-export CPLUS_INCLUDE_PATH=/usr/include/x86_64-linux-gnu
+source $(dirname $(readlink -n -f "$0"))/zz-build-config "$@"
 
 #	Command-line options.
 unset -v NO_TEST
 for arg in '--debug' "$@"
 do
-	if [[ "$arg" == "--debug" ]]; then
-		BUILD_TYPE=debug
-		CMAKE_BUILD_TYPE=Debug
-	elif [[ "$arg" == "--release" ]]; then
-		BUILD_TYPE=release
-		CMAKE_BUILD_TYPE=Release
-	elif [[ "$arg" == "--profile" ]]; then
-		BUILD_TYPE=profile
-		CMAKE_BUILD_TYPE=Release
+	if [[ "$arg" == "--debug" || "$arg" == "--release" || "$arg" == "--profile" ]]; then
+		unset NULL; # handled already
 	elif [[ "$arg" == "--no-test" ]]; then
 		NO_TEST="--no-test"
 	elif [[ "$arg" == "--help" ]]; then
@@ -55,33 +39,6 @@ do
 	fi
 done
 
-#	You can specify the qak/src directory in the environment variable QAK_SRC_DIR,
-#	or this script will try to figure it out from its own location.
-
-THIS_SCRIPT=$(readlink -n -f "$0")
-echo "THIS_SCRIPT=$THIS_SCRIPT"
-
-THIS_SCRIPT_DIR=$(dirname "$THIS_SCRIPT")
-echo "THIS_SCRIPT_DIR=$THIS_SCRIPT_DIR"
-
-if [[ ! -d "$QAK_SRC_DIR" ]]; then QAK_SRC_DIR=$(dirname "$THIS_SCRIPT"); fi
-echo "QAK_SRC_DIR=$QAK_SRC_DIR"
-export QAK_SRC_DIR
-
-#	You can specify the build root directory in the environment variable QAK_BUILD_ROOT_DIR,
-#	or it uses a directory named 'build' as a sibling of $QAK_SRC_DIR
-
-if [[ -z "$QAK_BUILD_ROOT_DIR" ]]; then
-	QAK_BUILD_ROOT_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build"
-	unset -v QAK_BUILD_DIR
-fi
-
-#	The build directory is named after the build type, under $QAK_BUILD_ROOT_DIR
-QAK_BUILD_DIR="$QAK_BUILD_ROOT_DIR/$BUILD_TYPE"
-
-echo "QAK_BUILD_ROOT_DIR=$QAK_BUILD_ROOT_DIR"
-echo "QAK_BUILD_DIR=$QAK_BUILD_DIR"
-
 #
 #	Validate env vars and set derived paths.
 #
@@ -92,6 +49,7 @@ find "$QAK_SRC_DIR" -type f -name 'cmake_install.cmake' -exec rm \{\} \;
 find "$QAK_SRC_DIR" -type f -name 'CMakeCache.txt' -exec rm \{\} \;
 find "$QAK_SRC_DIR" -type d -name 'CMakeFiles' -exec rm -rf \{\} \;
 
+#	Wipe and re-create the build dir.
 if [[ -d "$QAK_BUILD_DIR" ]]; then
 	set -o xtrace
 	rm -rf "$QAK_BUILD_DIR"
@@ -99,44 +57,57 @@ if [[ -d "$QAK_BUILD_DIR" ]]; then
 fi
 set -o xtrace
 mkdir -p "$QAK_BUILD_DIR"
-cd "$QAK_BUILD_DIR"
 set +o xtrace
 
 BUILDIT_ERR=$QAK_BUILD_DIR/buildit-err.txt
 BUILDIT_OUT_1=$QAK_BUILD_DIR/buildit-out.1.txt
-BUILDIT_OUT_2=$QAK_BUILD_ROOT_DIR/buildit-out.2.txt
+BUILDIT_OUT_2=$QAK_BUILD_DIR/buildit-out.2.txt
 
-#	-std=c++0x is to use newer language features.
-#
-#	-Wno-invalid-offsetof is for libnrcgc, which takes one or two mild liberties with the
-#	layout of non-PODs.
-#
-#C_CXX_FLAGS="-ggdb3"
-C_CXX_FLAGS="$C_CXX_FLAGS -pthread -D_POSIX_PTHREAD_SEMANTICS -D_REENTRANT"   # -Wno-invalid-offsetof -Wno-deprecated
-C_CXX_FLAGS="$C_CXX_FLAGS -Wall"
-CXXFLAGS="-std=c++0x"
-if [[ "$BUILD_TYPE" == "debug" ]]; then
+if [[ "clang" == $QAK_ccxx_toolchain ]]; then
 
-	C_CXX_FLAGS="$C_CXX_FLAGS -O0 -fno-inline"
+    source ./clean_cmake-clang
 
-	#	Enable GNU libstdc++ debugging
-	CXXFLAGS="$CXXFLAGS -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC"
+elif [[ "gcc" == $QAK_ccxx_toolchain ]]; then
 
-elif [[ "$BUILD_TYPE" == "release" ]]; then
+    #	-std=c++0x is to use newer language features.
+    #
+    #	-Wno-invalid-offsetof is for libnrcgc, which takes one or two mild liberties with the
+    #	layout of non-PODs.
+    #
+    #C_CXX_FLAGS="-ggdb3"
 
-	C_CXX_FLAGS="$C_CXX_FLAGS"
+    C_CXX_FLAGS="$C_CXX_FLAGS -pthread -D_POSIX_PTHREAD_SEMANTICS -D_REENTRANT"   # -Wno-invalid-offsetof -Wno-deprecated
+    C_CXX_FLAGS="$C_CXX_FLAGS -Wall"
+    CXXFLAGS="-std=c++0x"
 
-elif [[ "$BUILD_TYPE" == "profile" ]]; then
+    if [[ "$BUILD_TYPE" == "debug" ]]; then
 
-	#C_CXX_FLAGS="$C_CXX_FLAGS -mtune=pentium -mfpmath=387 -mno-mmx -mno-sse -mno-sse2 -mno-sse3"
-	#C_CXX_FLAGS="$C_CXX_FLAGS -mtune=generic -mfpmath=387 -mno-mmx -mno-sse -mno-sse2 -mno-sse3"
-	C_CXX_FLAGS="$C_CXX_FLAGS -mtune=generic -mfpmath=387 -mno-sse2 -mno-sse3"
+	    C_CXX_FLAGS="$C_CXX_FLAGS -O0 -fno-inline"
+
+	    #	Enable GNU libstdc++ debugging
+	    CXXFLAGS="$CXXFLAGS -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC"
+
+    elif [[ "$BUILD_TYPE" == "release" ]]; then
+
+	    C_CXX_FLAGS="$C_CXX_FLAGS"
+
+    elif [[ "$BUILD_TYPE" == "profile" ]]; then
+
+	    #C_CXX_FLAGS="$C_CXX_FLAGS -mtune=pentium -mfpmath=387 -mno-mmx -mno-sse -mno-sse2 -mno-sse3"
+	    #C_CXX_FLAGS="$C_CXX_FLAGS -mtune=generic -mfpmath=387 -mno-mmx -mno-sse -mno-sse2 -mno-sse3"
+	    C_CXX_FLAGS="$C_CXX_FLAGS -mtune=generic -mfpmath=387 -mno-sse2 -mno-sse3"
+    fi
+
+    export CFLAGS="$C_CXX_FLAGS $CFLAGS"
+    export CXXFLAGS="$C_CXX_FLAGS $CXXFLAGS"
+    export GLIBCXX_DEBUG_MESSAGE_LENGTH=120
+
+else
+    echo "need QAK_ccxx_toolchain defined"
+    exit 1
 fi
-CFLAGS="$C_CXX_FLAGS $CFLAGS"
-CXXFLAGS="$C_CXX_FLAGS $CXXFLAGS"
-export CFLAGS CXXFLAGS
 
-declare -x GLIBCXX_DEBUG_MESSAGE_LENGTH=120
+cd "$QAK_BUILD_DIR"
 
 cmake -Wdev \
 -DCMAKE_VERBOSE_MAKEFILE=true \
@@ -144,7 +115,6 @@ cmake -Wdev \
 -DCMAKE_CXX_COMPILER=$CXX_COMPILER \
 -DQAK_SRC_DIR="$QAK_SRC_DIR" \
 -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE" "$QAK_SRC_DIR"
-
 
 #make
 

@@ -23,18 +23,22 @@
 
 namespace qak_rptr_imp_ { // ==========================================================================================|
 
-	void qak_rptr_imp__rpointee_NTB_::tpointee_inc_ref_() noexcept
+	void qak_rptr_imp__rpointee_NTB_::tpointee_inc_ref_() const QAK_noexcept
 	{
-		++qak_rptr_imp__refcnt_;
+		qak_rptr_imp__rpointee_NTB_ * nonconst_this = const_cast<qak_rptr_imp__rpointee_NTB_ *>(this);
+
+		++nonconst_this->qak_rptr_imp__refcnt_;
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
-	void qak_rptr_imp__rpointee_NTB_::tpointee_dec_ref_() noexcept
+	void qak_rptr_imp__rpointee_NTB_::tpointee_dec_ref_() const QAK_noexcept
 	{
-		std::uintptr_t n = --qak_rptr_imp__refcnt_;
+		qak_rptr_imp__rpointee_NTB_ * nonconst_this = const_cast<qak_rptr_imp__rpointee_NTB_ *>(this);
+
+		std::uintptr_t n = --nonconst_this->qak_rptr_imp__refcnt_;
 		if (!n)
-			delete this;
+			delete nonconst_this;
 	}
 
 } // namespace qak_rptr_imp_

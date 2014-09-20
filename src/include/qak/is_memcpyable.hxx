@@ -22,12 +22,19 @@
 #ifndef qak_is_memcpyable_hxx_INCLUDED_
 #define qak_is_memcpyable_hxx_INCLUDED_
 
+#include "qak/config.hxx"
+
 #include <type_traits> // std::is_pod, std::enable_if
+
+//? TODO I think this is going into newer C++ versions
 
 namespace qak { //=====================================================================================================|
 
 namespace imp_ {
 
+#if !QAK_COMPILER_FAILS_CONSTEXPR
+
+	//? TODO	Which PODs are memcpyable? Those which don't contain pointers to themselves?
 	template <class NCVT> constexpr
 	typename std::enable_if<
 			std::is_pod<NCVT>::value,
@@ -44,6 +51,24 @@ namespace imp_ {
 		return false;
 	}
 
+#else // thus compiler supports constexpr
+
+	template <class NCVT, class Enable = void> struct is_memcpyable_detect : std::false_type { };
+
+	template <class NCVT> struct is_memcpyable_detect<
+		NCVT,
+		typename std::enable_if<
+				   std::is_integral<NCVT>::value
+				|| std::is_floating_point<NCVT>::value
+				|| std::is_enum<NCVT>::value
+				|| std::is_member_function_pointer<NCVT>::value
+				// || arrays of memcpyable types ... std::remove_all_extents<NCVT>
+			>::type
+		> : std::true_type
+	{ };
+
+#endif // of thus compiler supports constexpr
+
 } // namespace imp_
 
 	//=================================================================================================================|
@@ -52,8 +77,9 @@ namespace imp_ {
 	//	Much like std::is_pod, but we could perhaps bend the rules a bit when we know about
 	//	the behavior of 'nontrivial' constructors and destructors.
 
-	//	Consider specializing this for your own classes.
-	//	Specialize this one and expect the common one to remove the const and volatile.
+#if !QAK_COMPILER_FAILS_CONSTEXPR
+
+	//	Consider specializing this constexpr function for your own classes.
 	template <class NCVT> constexpr
 	bool is_memcpyable_NCV()
 	{
@@ -65,6 +91,18 @@ namespace imp_ {
 	{
 		return is_memcpyable_NCV<typename std::remove_cv<T>::type>();
 	}
+
+#else // thus compiler supports constexpr
+
+	//	Consider specializing this type for your own classes.
+	template <class NCVT> struct is_memcpyable_NCV : imp_::is_memcpyable_detect<NCVT> { };
+
+	template <class T> struct is_memcpyable :
+		is_memcpyable_NCV<typename std::remove_cv<T>::type>
+	{ };
+
+#endif // of thus compiler supports constexpr
+
 	//-----------------------------------------------------------------------------------------------------------------|
 
 	//=================================================================================================================|

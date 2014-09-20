@@ -28,15 +28,33 @@ namespace zzz { //==============================================================
 
 	QAKtest_anon()
 	{
+		std::uint8_t aby[] = { 0, 1, 2 };
+		QAK_verify_equal(aby[0], 0);
+		QAK_verify_equal(aby[1], 1);
+		QAK_verify_equal(aby[2], 2);
+
+		qak::rotate_sequence(&aby[0], &aby[0], &aby[0] + 3);
+
+		QAK_verify_equal(aby[0], 0);
+		QAK_verify_equal(aby[1], 1);
+		QAK_verify_equal(aby[2], 2);
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
 	QAKtest_anon()
 	{
-	}
+		std::uint8_t aby[] = { 0, 1, 2 };
+		QAK_verify_equal(aby[0], 0);
+		QAK_verify_equal(aby[1], 1);
+		QAK_verify_equal(aby[2], 2);
 
-	//? TODO test
+		qak::rotate_sequence(&aby[0], &aby[2], &aby[0] + 3);
+
+		QAK_verify_equal(aby[0], 2);
+		QAK_verify_equal(aby[1], 0);
+		QAK_verify_equal(aby[2], 1);
+	}
 
 } // namespace zzz ====================================================================================================|
 #include "qak/test_app_post.hxx"

@@ -22,6 +22,7 @@
 #ifndef qak_permutation_hxx_INCLUDED_
 #define qak_permutation_hxx_INCLUDED_
 
+#include "qak/config.hxx"
 #include "qak/vector.hxx"
 
 #include <cstdint>
@@ -35,7 +36,9 @@ namespace permutation_imp {
 	template <> struct size_type_of<1> { typedef std::uint8_t  type; };
 	template <> struct size_type_of<2> { typedef std::uint16_t type; };
 	template <> struct size_type_of<4> { typedef std::uint32_t type; };
+#if 64 <= QAK_pointer_bits
 	template <> struct size_type_of<8> { typedef std::uint64_t type; };
+#endif
 
 	template <int N> struct index_permutation_imp
 	{
@@ -44,6 +47,12 @@ namespace permutation_imp {
 		typedef qak::vector<uint_type> vector_type;
 		vector_type f_; // forward mapping
 		vector_type r_; // reverse mapping
+
+//		static typename vector_type::size_type force_uint_type_to_vec_size_type(uint_type ui)
+//		{
+//			assert(0 <= ui && ui <= std::numeric_limits<vector_type::size_type>::max());
+//			return static_cast<vector_type::size_type>(ui);
+//		}
 
 		index_permutation_imp() : f_(), r_() { }
 
@@ -97,7 +106,9 @@ namespace permutation_imp {
 	extern template struct index_permutation_imp<1>;
 	extern template struct index_permutation_imp<2>;
 	extern template struct index_permutation_imp<4>;
+#if 64 <= QAK_pointer_size
 	extern template struct index_permutation_imp<8>;
+#endif
 
 } // namespace permutation_imp
 

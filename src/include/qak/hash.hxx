@@ -22,25 +22,34 @@
 #ifndef qak_hash_hxx_INCLUDED_
 #define qak_hash_hxx_INCLUDED_
 
+#include "qak/config.hxx"
+
 #include <cstdint> // std::size_t
 
 namespace qak { //=====================================================================================================|
 
 namespace hash_imp_ {
 
-	template <std::size_t sizeof_sizet_N> struct fnv1a_params;
+	template <int sizeof_sizet_N> struct fnv1a_params;
+
+#if 32 <= QAK_pointer_bits
 
 	template <> struct fnv1a_params<4> // 32-bit FNV-1a
 	{
-		constexpr std::size_t offset_basis() { return 2166136261UL; }
-		constexpr std::size_t prime()        { return   16777619UL; }
+		QAK_MAYBE_constexpr std::size_t offset_basis() { return 2166136261UL; }
+		QAK_MAYBE_constexpr std::size_t prime()        { return   16777619UL; }
 	};
+
+#if 64 <= QAK_pointer_bits
 
 	template <> struct fnv1a_params<8> // 64-bit FNV-1a
 	{
-		constexpr std::size_t offset_basis() { return 14695981039346656037ULL; }
-		constexpr std::size_t prime()        { return        1099511628211ULL; }
+		QAK_MAYBE_constexpr std::size_t offset_basis() { return 14695981039346656037ULL; }
+		QAK_MAYBE_constexpr std::size_t prime()        { return        1099511628211ULL; }
 	};
+
+#endif // 64 <= QAK_pointer_bits
+#endif // 32 <= QAK_pointer_bits
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
@@ -95,8 +104,12 @@ namespace hash_imp_ {
 	template <> struct hash<char>               : hash_imp_::hash_integral_base< 2, char> { };
 	template <> struct hash<signed char>        : hash_imp_::hash_integral_base< 3, signed char> { };
 	template <> struct hash<unsigned char>      : hash_imp_::hash_integral_base< 4, unsigned char> { };
+#if !QAK_COMPILER_FAILS_char16_t_IS_DISTINCT_TYPE // compiler supports char16_t as a distinct type
 	template <> struct hash<char16_t>           : hash_imp_::hash_integral_base< 5, char16_t> { };
+#endif
+#if !QAK_COMPILER_FAILS_char32_t_IS_DISTINCT_TYPE // compiler supports char3_t as a distinct type
 	template <> struct hash<char32_t>           : hash_imp_::hash_integral_base< 6, char32_t> { };
+#endif
 	template <> struct hash<wchar_t>            : hash_imp_::hash_integral_base< 7, wchar_t> { };
 	template <> struct hash<short>              : hash_imp_::hash_integral_base< 8, short> { };
 	template <> struct hash<unsigned short>     : hash_imp_::hash_integral_base< 9, unsigned short> { };
@@ -127,11 +140,25 @@ namespace hash_imp_ {
 			digest(dig_in)
 		{ }
 
+#if !QAK_COMPILER_FAILS_DEFAULTED_MEMBERS // supports "= default" syntax
+
 		hasher(hasher const &) = default;
 		hasher(hasher &&) = default;
 
 		hasher & operator = (hasher const &) = default;
 		hasher & operator = (hasher &&) = default;
+
+#else // workaround for compilers that don't support "= default" syntax
+
+		hasher(hasher const & that) : digest(that.digest) { }
+
+		hasher(hasher && that) : digest(that.digest) { } //? support use-after-moved-from detection?
+
+		hasher & operator = (hasher const & that) { this->digest = that.digest; return *this; }
+
+		hasher & operator = (hasher && that) { this->digest = that.digest; return *this; } //? support use-after-moved-from detection?
+
+#endif // of workaround for compilers that don't support "= default" syntax
 
 		//	Returns the current digest.
 		result_type operator () () const

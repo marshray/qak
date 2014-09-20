@@ -22,7 +22,10 @@
 #ifndef qak_rotate_sequence_hxx_INCLUDED_
 #define qak_rotate_sequence_hxx_INCLUDED_
 
+#include "qak/config.hxx"
 #include "qak/is_memcpyable.hxx"
+
+#include <cassert>
 
 namespace qak_rotate_sequence_imp_ { //================================================================================|
 
@@ -35,7 +38,11 @@ namespace qak { //==============================================================
 
 	template <class T> inline
 	typename std::enable_if<
+#if !QAK_COMPILER_FAILS_CONSTEXPR
 		is_memcpyable<T>(),
+#else
+		is_memcpyable<T>::value,
+#endif
 	void>::type rotate_sequence(T * p_b, T * p_m, T * p_e)
 	{
 		assert(p_b <= p_m && p_m <= p_e);
@@ -51,7 +58,7 @@ namespace qak { //==============================================================
 
 	template <class T> inline
 	typename std::enable_if<
-		!is_memcpyable<T>(),
+		! is_memcpyable<T>::value,
 	void>::type rotate_sequence(T * p_b, T * p_m, T * p_e)
 	{
 		static_assert(!sizeof(T), "TODO");

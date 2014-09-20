@@ -22,6 +22,10 @@
 #ifndef qak_thread_group_hxx_INCLUDED_
 #define qak_thread_group_hxx_INCLUDED_
 
+#include "qak/config.hxx"
+#include "qak/thread.hxx"
+#include "qak/rptr.hxx"
+
 #include <cstdint>
 #include <functional>
 
@@ -29,34 +33,29 @@ namespace qak { //==============================================================
 
 	//	A group of threads. Useful for creating and shutting down a thread pool.
 	//
-	struct thread_group
+	struct thread_group :
+		rpointee_base<thread_group> // noncopyable and nonmoveable
 	{
 		//	The thread is run by calling an instance of thread_fn_t. Thread_fn is expected, soon after entry, to provide
 		//	an instance of thread_stop_fn (by calling provide_thread_stop_fn). The thread_stop_fn is a function the
 		//	thread_group can later call to ask the thread to exit gracefully.
 		typedef std::function<void()> thread_stop_fn_t;
 		typedef std::function<void(thread_stop_fn_t stop_fn)> provide_thread_stop_fn_t;
-		typedef std::function<void(unsigned cpu_ix, provide_thread_stop_fn_t provide_thread_stop_fn)> thread_fn_t;
+		typedef std::function<void(std::size_t cpu_ix, provide_thread_stop_fn_t provide_thread_stop_fn)> thread_fn_t;
 
 		//	Ctor, specifying the initial count of threads explicitly.
-		explicit thread_group(thread_fn_t fn, unsigned cnt = 0);
-
-		//	Move ctor.
-		thread_group(thread_group && src);
-
-		//	Dtor.
-		~thread_group();
+		explicit thread_group(thread_fn_t fn, std::size_t cnt = 0);
 
 		//	Sets the target count of threads explicitly. Threads are started or requested to stop in
 		//	order to match the specified target.
-		void set_target_cnt_threads(unsigned cnt);
-		unsigned get_target_cnt_threads() const;
+		void set_target_cnt_threads(std::size_t cnt);
+		std::size_t get_target_cnt_threads() const;
 
 		//	Sets the target count of threads as a multiple of the available CPUs.
 		void set_target_cpu_coverage(float coverage);
 
 		//	Gets the instantaneous count of threads.
-		unsigned get_current_cnt_threads() const;
+		std::size_t get_current_cnt_threads() const;
 
 		//	Requests all threads exit gracefully, but does not actually block.
 		//	Equivalent to set_target_cnt_threads(0).
@@ -81,10 +80,13 @@ namespace qak { //==============================================================
 		//	Swap.
 		void swap(thread_group & that);
 
+	protected:
+
+		//	Dtor.
+		virtual ~thread_group();
+
 	private:
 		void * pv_;
-
-		thread_group & operator = (thread_group const &) = delete;
 	};
 
 	//=================================================================================================================|

@@ -22,6 +22,9 @@
 #ifndef qak_ucs_hxx_INCLUDED_
 #define qak_ucs_hxx_INCLUDED_
 
+#include "qak/config.hxx"
+#include "qak/alignof.hxx"
+
 #include <cassert>
 #include <cstdint> // uint8_t, size_t
 
@@ -47,7 +50,12 @@ namespace qak { namespace ucs { //==============================================
 				|| 0xc2 <= val_ && val_ < 0xf5 );
 		}
 
+#if !QAK_COMPILER_FAILS_EXPLICIT_CONVERSIONS // supports explicit conversion operators
+
 		explicit operator bool () const { return !! val_; }
+
+#else // workaround for compilers that don't support explicit conversion operators
+#endif // of workaround for compilers that don't support explicit conversion operators
 
 		operator std::uint8_t () const { return val_; }
 
@@ -56,8 +64,17 @@ namespace qak { namespace ucs { //==============================================
 		std::uint8_t val_;
 	};
 
+#if !QAK_COMPILER_FAILS_ALIGNOF_OPERATOR // compiler supports alignof operator
+
 	static_assert(sizeof(utf8_octet) == sizeof(std::uint8_t), "");
 	static_assert(alignof(utf8_octet) == alignof(std::uint8_t), "");
+
+#else // workaround for compilers that don't support alignof operator yet
+
+	static_assert(sizeof(utf8_octet) == std::alignment_of<std::uint8_t>::value, "");
+	static_assert(std::alignment_of<utf8_octet>::value == std::alignment_of<std::uint8_t>::value, "");
+
+#endif // of workaround for compilers that don't support alignof operator yet
 
 	//=================================================================================================================|
 
@@ -104,7 +121,12 @@ namespace qak { namespace ucs { //==============================================
 			assert(is_valid(val_in));
 		}
 
+#if !QAK_COMPILER_FAILS_EXPLICIT_CONVERSIONS // supports explicit conversion operators
+
 		explicit operator bool () const { return !! val_; }
+
+#else // workaround for compilers that don't support explicit conversion operators
+#endif // of workaround for compilers that don't support explicit conversion operators
 
 		operator char32_t () const { return val_; }
 

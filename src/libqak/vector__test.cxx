@@ -105,8 +105,16 @@ namespace zzz { //==============================================================
 		for (unsigned n = 0; n < 20; ++n)
 			v.push_back(n);
 		unsigned cnt = 0;
+
+#if 1 // workaround for bug in msvc 2012
 		for (auto u : v)
-			QAK_verify( u == cnt++ );
+		{
+			QAK_verify_equal(u, cnt++);
+		}
+#elif 0 // preferred code
+		for (auto u : v)
+			QAK_verify_equal(u, cnt++);
+#endif
 		QAK_verify( cnt == v.size() );
 	}
 

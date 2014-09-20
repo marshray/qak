@@ -22,6 +22,8 @@
 #ifndef qak_bitsizeof_hxx_INCLUDED_
 #define qak_bitsizeof_hxx_INCLUDED_
 
+#include "qak/config.hxx"
+
 #include <climits> // CHAR_BIT
 #include <cstdint> // std::size_t
 
@@ -43,7 +45,7 @@ namespace qak { //==============================================================
 	//	I.e., bitsizeof<int>().
 	//
 	template <class T>
-	constexpr std::size_t bitsizeof()
+	QAK_MAYBE_constexpr std::size_t bitsizeof()
 	{
 		return sizeof(T)*CHAR_BIT;
 	}
@@ -52,7 +54,7 @@ namespace qak { //==============================================================
 
 	//	One-argument form for supplying a value ref (which goes unused).
 	template <class T>
-	constexpr std::size_t bitsizeof(T const &)
+	QAK_MAYBE_constexpr std::size_t bitsizeof(T const &)
 	{
 		return bitsizeof<T>();
 	}

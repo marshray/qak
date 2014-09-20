@@ -23,6 +23,7 @@
 
 #include "qak/vector.hxx"
 
+#include <cassert>
 #include <cstdint> // std::size_t
 #include <cstring> // std::memcpy
 
@@ -37,8 +38,8 @@ namespace qak_rotate_sequence_imp_ { //=========================================
 		//?	OPT See the very nice section from Programming Pearls (available online) with
 		//	several other algorithms benchmarked for rotation permutations.
 
-		std::size_t sz_l = p_m - p_b;
-		std::size_t sz_r = p_e - p_m;
+		std::size_t sz_l = static_cast<std::size_t>(p_m - p_b);
+		std::size_t sz_r = static_cast<std::size_t>(p_e - p_m);
 
 		//	Early exit if there's no effective rotation.
 		if ( ! (sz_l && sz_r) )

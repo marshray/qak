@@ -23,11 +23,18 @@ vector's allocator support anyway.
 
 At the current time, the toolset used for development is:
 
+	MS Visual Studio 2013 C++
+
+Also had once been tested with:
+
+	MS Visual Studio 2012 C++
+
 	g++ 4.6.2
 	libstdc++ 6.0.16
 	cmake 2.8.0
 	Linux 2.6.32-35 x86_64 AKA amd64 AKA x64
 	Ubuntu 10.04 LTS _Lucid Lynx_ - Release amd64 (20100429)
+
 
 Misc coding practices:
 
@@ -42,7 +49,14 @@ Misc coding practices:
 
 	C++11 (aka C++0x) features are adopted as they become available in g++.
 
-	Use //? //?TODO to indicate places that are incomplete or may need review or revision.
+	Some ugly workarounds are provided for compilers that don't yet support various features.
+	These will be removed as soon as they become available in the vendor's latest compiler version.
+
+	Use //? or //?TODO to indicate places that are incomplete or may need review or revision.
+	Use //? or //?OPT to indicate possible performance optimizations.
+
+
+
 
 Headers from the standard library, annotated with the lines of dependency c++ headers
 and the total LoC.

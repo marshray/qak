@@ -22,11 +22,7 @@
 #include "qak/stopwatch.hxx"
 
 #include "qak/config.hxx"
-#if QAK_POSIX
-#	include <unistd.h> // usleep
-#else
-	void usleep(long) { throw 0; }
-#endif
+#include "qak/thread.hxx"
 
 #include "qak/test_app_pre.hxx"
 #include "qak/test_macros.hxx"
@@ -36,7 +32,7 @@ namespace zzz { //==============================================================
 	QAKtest_anon()
 	{
 		qak::stopwatch sw;
-		::usleep(1000);
+		qak::this_thread::sleep_ns(1000*1000);
 		QAK_verify( 0.0 < sw.elapsed_s() );
 	}
 

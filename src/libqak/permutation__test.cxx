@@ -40,15 +40,21 @@ namespace zzz { //==============================================================
 	QAKtest(index_permutation_default_ctor, "index_permutation Default construction.")
 	{
 		test_index_permutation_default_ctor<signed char>();
-		test_index_permutation_default_ctor<short int>();
-		test_index_permutation_default_ctor<int>();
-		test_index_permutation_default_ctor<long int>();
-		test_index_permutation_default_ctor<long long int>();
 		test_index_permutation_default_ctor<unsigned char>();
+
+		test_index_permutation_default_ctor<short int>();
 		test_index_permutation_default_ctor<unsigned short int>();
+
+		test_index_permutation_default_ctor<int>();
 		test_index_permutation_default_ctor<unsigned int>();
+
+		test_index_permutation_default_ctor<long int>();
 		test_index_permutation_default_ctor<unsigned long int>();
+
+#if 64 <= QAK_pointer_bits
+		test_index_permutation_default_ctor<long long int>();
 		test_index_permutation_default_ctor<unsigned long long int>();
+#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
@@ -83,12 +89,14 @@ namespace zzz { //==============================================================
 		test_index_permutation_ctor_cnt<short int>();
 		test_index_permutation_ctor_cnt<int>();
 		test_index_permutation_ctor_cnt<long int>();
-		test_index_permutation_ctor_cnt<long long int>();
 		test_index_permutation_ctor_cnt<unsigned char>();
 		test_index_permutation_ctor_cnt<unsigned short int>();
 		test_index_permutation_ctor_cnt<unsigned int>();
 		test_index_permutation_ctor_cnt<unsigned long int>();
+#if 64 <= QAK_pointer_bits
+		test_index_permutation_ctor_cnt<long long int>();
 		test_index_permutation_ctor_cnt<unsigned long long int>();
+#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
@@ -110,12 +118,14 @@ namespace zzz { //==============================================================
 		test_index_permutation_copy_ctor<short int>();
 		test_index_permutation_copy_ctor<int>();
 		test_index_permutation_copy_ctor<long int>();
-		test_index_permutation_copy_ctor<long long int>();
 		test_index_permutation_copy_ctor<unsigned char>();
 		test_index_permutation_copy_ctor<unsigned short int>();
 		test_index_permutation_copy_ctor<unsigned int>();
 		test_index_permutation_copy_ctor<unsigned long int>();
+#if 64 <= QAK_pointer_bits
+		test_index_permutation_copy_ctor<long long int>();
 		test_index_permutation_copy_ctor<unsigned long long int>();
+#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
@@ -138,12 +148,14 @@ namespace zzz { //==============================================================
 		test_index_permutation_move_ctor<short int>();
 		test_index_permutation_move_ctor<int>();
 		test_index_permutation_move_ctor<long int>();
-		test_index_permutation_move_ctor<long long int>();
 		test_index_permutation_move_ctor<unsigned char>();
 		test_index_permutation_move_ctor<unsigned short int>();
 		test_index_permutation_move_ctor<unsigned int>();
 		test_index_permutation_move_ctor<unsigned long int>();
+#if 64 <= QAK_pointer_bits
+		test_index_permutation_move_ctor<long long int>();
 		test_index_permutation_move_ctor<unsigned long long int>();
+#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
@@ -173,12 +185,14 @@ namespace zzz { //==============================================================
 		test_index_permutation_assign<short int>();
 		test_index_permutation_assign<int>();
 		test_index_permutation_assign<long int>();
-		test_index_permutation_assign<long long int>();
 		test_index_permutation_assign<unsigned char>();
 		test_index_permutation_assign<unsigned short int>();
 		test_index_permutation_assign<unsigned int>();
 		test_index_permutation_assign<unsigned long int>();
+#if 64 <= QAK_pointer_bits
+		test_index_permutation_assign<long long int>();
 		test_index_permutation_assign<unsigned long long int>();
+#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
@@ -207,19 +221,21 @@ namespace zzz { //==============================================================
 		test_index_permutation_move_assign<short int>();
 		test_index_permutation_move_assign<int>();
 		test_index_permutation_move_assign<long int>();
-		test_index_permutation_move_assign<long long int>();
 		test_index_permutation_move_assign<unsigned char>();
 		test_index_permutation_move_assign<unsigned short int>();
 		test_index_permutation_move_assign<unsigned int>();
 		test_index_permutation_move_assign<unsigned long int>();
+#if 64 <= QAK_pointer_bits
+		test_index_permutation_move_assign<long long int>();
 		test_index_permutation_move_assign<unsigned long long int>();
+#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
 	template <class T> void test_index_permutation_equality()
 	{
-		for (unsigned n = 0; n < 20; ++n)
+		for (T n = 0; n < 20; ++n)
 		{
 			index_permutation<T> p_a(n);
 			index_permutation<T> p_b(p_a);
@@ -242,12 +258,14 @@ namespace zzz { //==============================================================
 		test_index_permutation_equality<short int>();
 		test_index_permutation_equality<int>();
 		test_index_permutation_equality<long int>();
-		test_index_permutation_equality<long long int>();
 		test_index_permutation_equality<unsigned char>();
 		test_index_permutation_equality<unsigned short int>();
 		test_index_permutation_equality<unsigned int>();
 		test_index_permutation_equality<unsigned long int>();
+#if 64 <= QAK_pointer_bits
+		test_index_permutation_equality<long long int>();
 		test_index_permutation_equality<unsigned long long int>();
+#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
@@ -291,12 +309,14 @@ namespace zzz { //==============================================================
 		test_index_permutation_swap_two<short int>();
 		test_index_permutation_swap_two<int>();
 		test_index_permutation_swap_two<long int>();
-		test_index_permutation_swap_two<long long int>();
 		test_index_permutation_swap_two<unsigned char>();
 		test_index_permutation_swap_two<unsigned short int>();
 		test_index_permutation_swap_two<unsigned int>();
 		test_index_permutation_swap_two<unsigned long int>();
+#if 64 <= QAK_pointer_bits
+		test_index_permutation_swap_two<long long int>();
 		test_index_permutation_swap_two<unsigned long long int>();
+#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
@@ -333,12 +353,14 @@ namespace zzz { //==============================================================
 		test_index_permutation_extend<short int>();
 		test_index_permutation_extend<int>();
 		test_index_permutation_extend<long int>();
-		test_index_permutation_extend<long long int>();
 		test_index_permutation_extend<unsigned char>();
 		test_index_permutation_extend<unsigned short int>();
 		test_index_permutation_extend<unsigned int>();
 		test_index_permutation_extend<unsigned long int>();
+#if 64 <= QAK_pointer_bits
+		test_index_permutation_extend<long long int>();
 		test_index_permutation_extend<unsigned long long int>();
+#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
@@ -377,12 +399,14 @@ namespace zzz { //==============================================================
 		test_index_permutation_set_identity<short int>();
 		test_index_permutation_set_identity<int>();
 		test_index_permutation_set_identity<long int>();
-		test_index_permutation_set_identity<long long int>();
 		test_index_permutation_set_identity<unsigned char>();
 		test_index_permutation_set_identity<unsigned short int>();
 		test_index_permutation_set_identity<unsigned int>();
 		test_index_permutation_set_identity<unsigned long int>();
+#if 64 <= QAK_pointer_bits
+		test_index_permutation_set_identity<long long int>();
 		test_index_permutation_set_identity<unsigned long long int>();
+#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
@@ -410,12 +434,14 @@ namespace zzz { //==============================================================
 		test_index_permutation_swap<short int>();
 		test_index_permutation_swap<int>();
 		test_index_permutation_swap<long int>();
-		test_index_permutation_swap<long long int>();
 		test_index_permutation_swap<unsigned char>();
 		test_index_permutation_swap<unsigned short int>();
 		test_index_permutation_swap<unsigned int>();
 		test_index_permutation_swap<unsigned long int>();
+#if 64 <= QAK_pointer_bits
+		test_index_permutation_swap<long long int>();
 		test_index_permutation_swap<unsigned long long int>();
+#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
@@ -447,11 +473,11 @@ namespace zzz { //==============================================================
 			QAK_verify_equal(p.f_at(2), 2); QAK_verify_equal(p.r_at(2), 2);
 		} {
 			//	Test clockwise-by-1 rotations.
-			for (unsigned n = 0; n < 10; ++n)
+			for (T n = 0; n < 10; ++n)
 			{
 				index_permutation<T> const p_ref(n);
 				index_permutation<T> p_a = p_ref;
-				for (unsigned i = 0; true; ++i)
+				for (T i = 0; true; ++i)
 				{
 					if (i == 0 || i == n) QAK_verify(p_a == p_ref);
 					else                  QAK_verify(p_a != p_ref);
@@ -463,11 +489,11 @@ namespace zzz { //==============================================================
 			}
 		} {
 			//	Test counterclockwise-by-1 rotations.
-			for (unsigned n = 0; n < 10; ++n)
+			for (T n = 0; n < 10; ++n)
 			{
 				index_permutation<T> const p_ref(n);
 				index_permutation<T> p_a = p_ref;
-				for (unsigned i = 0; true; ++i)
+				for (T i = 0; true; ++i)
 				{
 					if (i == 0 || i == n) QAK_verify(p_a == p_ref);
 					else                  QAK_verify(p_a != p_ref);
@@ -499,12 +525,14 @@ namespace zzz { //==============================================================
 		test_index_permutation_rotate<short int>();
 		test_index_permutation_rotate<int>();
 		test_index_permutation_rotate<long int>();
-		test_index_permutation_rotate<long long int>();
 		test_index_permutation_rotate<unsigned char>();
 		test_index_permutation_rotate<unsigned short int>();
 		test_index_permutation_rotate<unsigned int>();
 		test_index_permutation_rotate<unsigned long int>();
+#if 64 <= QAK_pointer_bits
+		test_index_permutation_rotate<long long int>();
 		test_index_permutation_rotate<unsigned long long int>();
+#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
@@ -562,12 +590,14 @@ namespace zzz { //==============================================================
 		test_index_permutation_square<short int>();
 		test_index_permutation_square<int>();
 		test_index_permutation_square<long int>();
-		test_index_permutation_square<long long int>();
 		test_index_permutation_square<unsigned char>();
 		test_index_permutation_square<unsigned short int>();
 		test_index_permutation_square<unsigned int>();
 		test_index_permutation_square<unsigned long int>();
+#if 64 <= QAK_pointer_bits
+		test_index_permutation_square<long long int>();
 		test_index_permutation_square<unsigned long long int>();
+#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
@@ -611,12 +641,14 @@ namespace zzz { //==============================================================
 		test_index_permutation_mult<short int>();
 		test_index_permutation_mult<int>();
 		test_index_permutation_mult<long int>();
-		test_index_permutation_mult<long long int>();
 		test_index_permutation_mult<unsigned char>();
 		test_index_permutation_mult<unsigned short int>();
 		test_index_permutation_mult<unsigned int>();
 		test_index_permutation_mult<unsigned long int>();
+#if 64 <= QAK_pointer_bits
+		test_index_permutation_mult<long long int>();
 		test_index_permutation_mult<unsigned long long int>();
+#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
@@ -709,12 +741,14 @@ namespace zzz { //==============================================================
 		test_index_permutation_remove<short int>();
 		test_index_permutation_remove<int>();
 		test_index_permutation_remove<long int>();
-		test_index_permutation_remove<long long int>();
 		test_index_permutation_remove<unsigned char>();
 		test_index_permutation_remove<unsigned short int>();
 		test_index_permutation_remove<unsigned int>();
 		test_index_permutation_remove<unsigned long int>();
+#if 64 <= QAK_pointer_bits
+		test_index_permutation_remove<long long int>();
 		test_index_permutation_remove<unsigned long long int>();
+#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|

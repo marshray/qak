@@ -22,10 +22,19 @@
 #ifndef qak_prng64_hxx_INCLUDED_
 #define qak_prng64_hxx_INCLUDED_
 
+#include "qak/config.hxx"
+
+#include <cassert>
 #include <climits> // CHAR_BIT
 #include <cstdint> // std::uintN_t
 #include <limits> // std::numeric_limits
 #include <type_traits> // std::enable_if, std::is_integral
+
+#ifdef _MSC_VER
+#	pragma warning (push)
+#	pragma warning (disable : 4307) // integral constant overflow
+#	pragma warning (disable : 4309) // truncation of constant value
+#endif // def _MSC_VER
 
 namespace qak { //=====================================================================================================|
 
@@ -40,10 +49,38 @@ namespace qak { //==============================================================
 	{
 	private:
 
-		static std::uint8_t const tweak_default_ = 0x48;
-		static std::uint8_t const tweak_seeder_seed_ = 0x71;
-		static std::uint8_t const tweak_integral_seed_ = 0x71;
-		//static std::uint8_t const tweak_integral_range_seed_ = 0xab;
+		//	http://nuclear.llnl.gov/CNP/rng/rngman.ps
+		//	Lawrence Livermore National Laboratory
+		//	Beck, Brooks, (2000) "The RNG Random Number Library"
+		//	"The period of this random number generator is 2^64. This generator is the same as the
+		//	default one-stream SPRNG and has been checked to insure that it satisfies the requirements
+		//	for maximal period [M. Mascagani 1999]."
+		static std::uint64_t const z_mult_ = 2862933555777941757UL;
+		static std::uint64_t const z_addn_ =          3037000493UL;
+
+#if !QAK_COMPILER_FAILS_CONSTEXPR // compiler supports constexpr
+		static std::uint64_t advance_(std::uint64_t z) constexpr
+		{
+			z *= z_mult_;
+			z += z_addn_;
+			return z;
+		}
+#else // workaround for compilers that don't support constexpr yet
+
+#	define advance_(z) (static_cast<std::uint64_t>(z)*z_mult_ + z_addn_)
+
+#endif // of workaround for compilers that don't support constexpr yet
+
+		//	This value of z_ will occurs almost at the end of the default cycle. It's unlikely to be encountered
+		//	in the seeded cases, too.
+		//	We use this as a marker of an invalid moved-from object in the debug builds.
+		static std::uint64_t const unlikely_z_ = 0;
+
+		static std::uint64_t const default_z_ = advance_(advance_(unlikely_z_));
+
+		//	These tweak values give us a different starting point in the sequence for certain internal uses.
+		static std::uint8_t const tweak_seeder_seed_ =   advance_(advance_(default_z_*37 + 44));
+		static std::uint8_t const tweak_integral_seed_ = advance_(advance_(default_z_*71 + 18));
 
 	public:
 
@@ -52,13 +89,13 @@ namespace qak { //==============================================================
 		{
 			std::uint64_t seed = seeder.generate<std::uint64_t>();
 			prng64 p;
-			p.z_ = seed + tweak_seeder_seed_;
+			p.z_ = advance_(seed + tweak_seeder_seed_);
 			return p;
 		}
 
 		//	Default construction with static seed.
 		prng64() :
-			z_(tweak_default_)
+			z_(default_z_)
 		{ }
 
 		//	Construction from an integral type seed.
@@ -69,8 +106,9 @@ namespace qak { //==============================================================
 					std::is_integral<seed_T>::value,
 				void>::type * = 0
 		) :
-			z_(tweak_integral_seed_)
+			z_(default_z_)
 		{
+			z_ += tweak_integral_seed_;
 			z_ <<= 8;
 
 			typedef typename std::make_unsigned<seed_T>::type val_type;
@@ -87,6 +125,8 @@ namespace qak { //==============================================================
 		//	Construction from an integral range seed.
 		//?
 
+#if !QAK_COMPILER_FAILS_DEFAULTED_MEMBERS // supports "= default" syntax
+
 		//	Copy ctor.
 		prng64(prng64 const &) = default;
 
@@ -98,6 +138,38 @@ namespace qak { //==============================================================
 
 		//	Move ctor.
 		prng64 & operator = (prng64 &&) = default;
+
+#else // workaround for compilers that don't support "= default" syntax
+
+		//	Copy ctor.
+		prng64(prng64 const & that) : z_(that.z_) { }
+
+		//	Move ctor.
+		prng64(prng64 && that) : z_(that.z_)
+		{
+#	ifndef NDEBUG
+			that.z_ = unlikely_z_;
+#	endif
+		}
+
+		//	Copy assign.
+		prng64 & operator = (prng64 const & that)
+		{
+			this->z_ = that.z_;
+			return *this;
+		}
+
+		//	Move ctor.
+		prng64 & operator = (prng64 && that)
+		{
+			this->z_ = that.z_;
+#	ifndef NDEBUG
+			that.z_ = unlikely_z_;
+#	endif
+			return *this;
+		}
+
+#endif // of workaround for compilers that don't support "= default" syntax
 
 		//	Generate the next number in the sequence for the specified integral type.
 		template <class T> inline T generate()
@@ -118,23 +190,15 @@ namespace qak { //==============================================================
 
 private:
 
-		//	http://nuclear.llnl.gov/CNP/rng/rngman.ps
-		//	Lawrence Livermore National Laboratory
-		//	Beck, Brooks, (2000) "The RNG Random Number Library"
-		//	"The period of this random number generator is 2^64. This generator is the same as the
-		//	default one-stream SPRNG and has been checked to insure that it satisfies the requirements
-		//	for maximal period [M. Mascagani 1999]."
-		static std::uint64_t const z_mult_ = 2862933555777941757UL;
-		static std::uint64_t const z_addn_ =          3037000493UL;
-
 		//	Holds the state as it was used to generate the previous value. Advance it before using.
 		std::uint64_t z_;
 
 		//	Advances the state and generates 32 new pseudorandom bits from the sequence.
 		std::uint32_t gen32_()
 		{
-			z_ *= z_mult_;
-			z_ += z_addn_;
+			assert(unlikely_z_ != z_);
+
+			z_ = advance_(z_);
 			return z_ >> 32;
 		}
 
@@ -203,6 +267,13 @@ private:
 		}};
 	};
 
+#if !QAK_COMPILER_FAILS_CONSTEXPR // compiler supports constexpr
+#else // workaround for compilers that don't support constexpr yet
+
+#	undef advance_
+
+#endif // of workaround for compilers that don't support constexpr yet
+
 	//-----------------------------------------------------------------------------------------------------------------|
 
 	//	An adpater for prng64 to meet the requirements of a standard uniform random number generator.
@@ -215,10 +286,23 @@ private:
 		std_urng(prng64 & rng) : rng_(rng) { }
 
 		//	Noncopyable.
+#if !QAK_COMPILER_FAILS_DEFAULTED_MEMBERS // supports "= default" syntax
+
 		std_urng(std_urng const &) = delete;
 		std_urng(std_urng &&) = delete;
 		std_urng & operator = (std_urng const &) = delete;
 		std_urng & operator = (std_urng &&) = delete;
+
+#else // workaround for compilers that don't support "= default" syntax
+
+	private:
+		std_urng(std_urng const &); // unimplemented
+		std_urng(std_urng &&); // unimplemented
+		std_urng & operator = (std_urng const &); // unimplemented
+		std_urng & operator = (std_urng &&); // unimplemented
+	public:
+
+#endif // of workaround for compilers that don't support "= default" syntax
 
 		result_type operator () () { return rng_.generate<result_type>(); }
 
@@ -231,4 +315,9 @@ private:
 	};
 
 } // namespace qak ====================================================================================================|
+
+#ifdef _MSC_VER
+#	pragma warning (pop)
+#endif // def _MSC_VER
+
 #endif // ndef qak_prng64_hxx_INCLUDED_

@@ -1,7 +1,7 @@
 // vim: set ts=4 sw=4 tw=120:
 //=====================================================================================================================|
 //
-//	Copyright (c) 2011, Marsh Ray
+//	Copyright (c) 2011-2012, Marsh Ray
 //
 //	Permission to use, copy, modify, and/or distribute this software for any
 //	purpose with or without fee is hereby granted, provided that the above
@@ -22,13 +22,16 @@
 #ifndef qak_test_macros_hxx_INCLUDED_
 #define qak_test_macros_hxx_INCLUDED_
 
+#include "qak/config.hxx"
+
 //=====================================================================================================================|
 
 //	Use this to fail a test with only a generic message.
 #define QAK_fail_test() do { throw 0; } while (false)
 
 //	Check that the macro argument evaluates to true in boolean context.
-#define QAK_verify(...) if (__VA_ARGS__) { } else QAK_fail_test()
+//#define QAK_verify(...) if (__VA_ARGS__) { } else QAK_fail_test()
+#define QAK_verify(b) if (b) { } else QAK_fail_test()
 
 //	Check that the two macro arguments compare equal with '=='.
 #define QAK_verify_equal(a, b) if ((a) == (b)) { } else QAK_fail_test()

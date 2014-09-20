@@ -49,13 +49,13 @@ namespace qak { //==============================================================
 		thread_fn_t const fn_;
 
 		//	The count of threads we want running.
-		atomic<unsigned> target_cnt_threads_;
+		atomic<size_t> target_cnt_threads_;
 
 		//	The count of threads that have been requested to start and have not yet been requested to stop.
-		unsigned cnt_threads_requested_;
+		size_t cnt_threads_requested_;
 
 		//	The count of threads that have been requested to start and are not yet joined.
-		unsigned cnt_threads_not_yet_joined_;
+		size_t cnt_threads_not_yet_joined_;
 
 		//	Hold a lock on this mutex when accessing the members which follow it.
 		mutex mut_;
@@ -67,6 +67,7 @@ namespace qak { //==============================================================
 			stoppable,
 			stop_requested,
 			exiting,
+			joining,
 			joined
 		};
 
@@ -76,15 +77,15 @@ namespace qak { //==============================================================
 		struct thread_info : rpointee_base<thread_info>
 		{
 			thread_state state;
-			optional<thread_id> tid;
-			unsigned cpu_ix;
+			thread::RP rp_thread;
+			size_t cpu_ix;
 			optional<thread_stop_fn_t> stop_fn;
 
 			thread_info(
-				unsigned cpu_ix_in
+				size_t cpu_ix_in
 			) :
 				state(thread_state::not_started),
-				tid(),
+				rp_thread(),
 				cpu_ix(cpu_ix_in),
 				stop_fn()
 			{ }
@@ -95,10 +96,12 @@ namespace qak { //==============================================================
 
 		thread_group_data(
 			thread_fn_t const & fn,
-			unsigned target_cnt
+			std::size_t target_cnt
 		) :
 			fn_(fn),
-			target_cnt_threads_(target_cnt)
+			target_cnt_threads_(target_cnt),
+			cnt_threads_requested_(0),
+			cnt_threads_not_yet_joined_(0)
 		{ }
 
 		//	Implements the thread_group::timed_join method.
@@ -113,7 +116,7 @@ namespace qak { //==============================================================
 
 		//	Counts the threads active on each cpu. Also stop threads that are on CPUs that
 		//	are no longer configured (if that can actually happen).
-		void figure_cpu_thread_counts(mutex_lock & lock, vector<unsigned> & cpu_thread_cnts_out);
+		void figure_cpu_thread_counts(mutex_lock & lock, vector<size_t> & cpu_thread_cnts_out);
 
 		//	Start or request termination to match the target cnt.
 		void start_or_stop();
@@ -129,7 +132,7 @@ namespace qak { //==============================================================
 
 	thread_group::thread_group(
 		thread_fn_t fn,
-		unsigned cnt // = 0
+		std::size_t cnt // = 0
 	) :
 		pv_(0)
 	{
@@ -139,16 +142,6 @@ namespace qak { //==============================================================
 		pv_ = p_tgd.get();
 
 		p_tgd->start_or_stop();
-	}
-
-	//-----------------------------------------------------------------------------------------------------------------|
-
-	thread_group::thread_group(
-		thread_group && src
-	) :
-		pv_(src.pv_)
-	{
-		src.pv_ = 0;
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
@@ -165,7 +158,7 @@ namespace qak { //==============================================================
 	//-----------------------------------------------------------------------------------------------------------------|
 
 	//	Sets the target count of threads explicitly.
-	void thread_group::set_target_cnt_threads(unsigned cnt)
+	void thread_group::set_target_cnt_threads(std::size_t cnt)
 	{
 		thread_group_data * p_tgd = static_cast<thread_group_data *>(pv_);
 		throw_unless(p_tgd);
@@ -177,7 +170,7 @@ namespace qak { //==============================================================
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
-	unsigned thread_group::get_target_cnt_threads() const
+	size_t thread_group::get_target_cnt_threads() const
 	{
 		thread_group_data * p_tgd = static_cast<thread_group_data *>(pv_);
 		throw_unless(p_tgd);
@@ -190,10 +183,11 @@ namespace qak { //==============================================================
 	//	Sets the target count of threads as a multiple of the available CPUs.
 	void thread_group::set_target_cpu_coverage(float coverage)
 	{
-		float f = coverage * host_info::cnt_cpus_available() + 0.5;
+		double d = coverage * host_info::cnt_cpus_available() + 0.5;
 
-		throw_unless(0.0f <= f && f <= std::numeric_limits<unsigned>::max());
-		unsigned u = static_cast<unsigned>(f);
+		throw_unless(0.0 <= d && d <= std::numeric_limits<std::size_t>::max());
+		std::size_t u = static_cast<std::size_t>(d);
+		throw_unless(abs(double(u) - d) <= 1.0);
 
 		set_target_cnt_threads(u);
 	}
@@ -201,7 +195,7 @@ namespace qak { //==============================================================
 	//-----------------------------------------------------------------------------------------------------------------|
 
 	//	Gets the instantaneous count of threads.
-	unsigned thread_group::get_current_cnt_threads() const
+	size_t thread_group::get_current_cnt_threads() const
 	{
 		rptr<thread_group_data> p_tgd(static_cast<thread_group_data *>(pv_));
 		throw_unless(p_tgd);
@@ -272,7 +266,7 @@ namespace qak { //==============================================================
 			}
 
 			if (!forever && until <= read_time_source(time_source::wallclock_ns))
-				return false;                                      // time's up
+				break;                                             // time's up
 
 			//	Do some more waiting.
 			join_exiting_threads();
@@ -290,7 +284,6 @@ namespace qak { //==============================================================
 
 	void thread_group_data::join_exiting_threads()
 	{
-		thread_id tid_to_join = thread_id();
 		rptr<thread_info> rp_ti_to_join;
 		do {
 			rp_ti_to_join.reset();
@@ -302,22 +295,28 @@ namespace qak { //==============================================================
 				{
 					if (rp_threadinfo && rp_threadinfo->state == thread_state::exiting)
 					{
-						assert(rp_threadinfo->tid);
-						rp_ti_to_join = rp_threadinfo;
-						tid_to_join = *rp_threadinfo->tid;
-						break;
+						assert(cnt_threads_not_yet_joined_);
+						throw_unless(rp_threadinfo->rp_thread);
+
+						bool callerThreadExiting = this_thread::is_same(rp_threadinfo->rp_thread);
+						assert(!callerThreadExiting); // how would this happen anyway?
+						if (!callerThreadExiting)
+						{
+							rp_ti_to_join = rp_threadinfo;
+							rp_threadinfo->state = thread_state::joining;
+							break;
+						}
 					}
 				}
 			}
 
 			if (rp_ti_to_join)
 			{
-				join_thread(tid_to_join);
+				rp_ti_to_join->rp_thread->join();
 
 				//	Register the transition from exiting to joined state.
 				mutex_lock lock(mut_);
-				assert(rp_ti_to_join->state == thread_state::exiting);
-
+				assert(rp_ti_to_join->state == thread_state::joining);
 				rp_ti_to_join->state = thread_state::joined;
 				--cnt_threads_not_yet_joined_;
 			}
@@ -329,10 +328,10 @@ namespace qak { //==============================================================
 
 	void thread_group_data::clean_out_exited_threads(mutex_lock & lock)
 	{
-		assert(lock.is_locking(mut_));
+		lock; assert(lock.is_locking(mut_));
 
 		//	Take this opportunity to check/fix up the count of threads requested running.
-		unsigned cnt_threads_nyj = 0;
+		std::size_t cnt_threads_nyj = 0;
 
 		size_t cnt_to_remove = 0;
 		for (auto & rp_threadinfo : threadinfos_)
@@ -373,13 +372,13 @@ namespace qak { //==============================================================
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
-	void thread_group_data::figure_cpu_thread_counts(mutex_lock & lock, vector<unsigned> & cpu_thread_cnts_out)
+	void thread_group_data::figure_cpu_thread_counts(mutex_lock & lock, vector<size_t> & cpu_thread_cnts_out)
 	{
 		assert(lock.is_locking(mut_));
 
 		clean_out_exited_threads(lock);
 
-		unsigned cnt_cpus = host_info::cnt_cpus_available();
+		std::size_t cnt_cpus = host_info::cnt_cpus_available();
 
 		//	Clear the count results.
 		for (auto & cnt : cpu_thread_cnts_out) cnt = 0;
@@ -409,7 +408,7 @@ namespace qak { //==============================================================
 		bool stop_existing = false;
 		{
 			mutex_lock lock(mut_);
-			int i = target_cnt_threads_ - cnt_threads_requested_;
+			std::size_t i = target_cnt_threads_ - cnt_threads_requested_;
 			start_new = 0 < i;
 			stop_existing = i < 0;
 		}
@@ -433,7 +432,7 @@ namespace qak { //==============================================================
 			{
 				mutex_lock lock(mut_);
 
-				int i = cnt_threads_requested_ - target_cnt_threads_;
+				std::size_t i = cnt_threads_requested_ - target_cnt_threads_;
 				bool keep_stopping_threads = 0 < i;
 				if (!keep_stopping_threads)
 					break;
@@ -449,12 +448,12 @@ namespace qak { //==============================================================
 	{
 		assert(lock.is_locking(mut_));
 
-		vector<unsigned> cpu_thread_cnts;
+		vector<size_t> cpu_thread_cnts;
 		figure_cpu_thread_counts(lock, cpu_thread_cnts);
 
 		//	Figure which cpu_ix is the least_busy (i.e., has the fewest threads).
-		unsigned least_busy_cpu_ix = 0;
-		unsigned least_busy_cpu_cnt = std::numeric_limits<unsigned>::max();
+		size_t least_busy_cpu_ix = 0;
+		size_t least_busy_cpu_cnt = std::numeric_limits<size_t>::max();
 		for (size_t cpu_ix = 0; cpu_ix < cpu_thread_cnts.size(); ++cpu_ix)
 			if (least_busy_cpu_cnt < 0 || cpu_thread_cnts[cpu_ix] < least_busy_cpu_cnt)
 			{
@@ -487,8 +486,8 @@ namespace qak { //==============================================================
 		++cnt_threads_requested_;
 		++cnt_threads_not_yet_joined_;
 
-		rp_threadinfo->tid = qak::start_thread(
-			[rp_tgd, rp_threadinfo, provide_thread_stop_fn]()
+		rp_threadinfo->rp_thread = qak::start_thread(
+			[rp_tgd, rp_threadinfo, provide_thread_stop_fn]() -> void
 			{
 				{
 					mutex_lock lock(rp_tgd->mut_);
@@ -496,9 +495,11 @@ namespace qak { //==============================================================
 					assert(rp_threadinfo->state == thread_state::starting);
 					rp_threadinfo->state = thread_state::started;
 
+#if 0
 					//	Set thread affinity.
 					this_thread::set_affinity(rp_threadinfo->cpu_ix);
 
+#endif
 					rp_threadinfo->state = thread_state::started;
 				}
 
@@ -517,7 +518,7 @@ namespace qak { //==============================================================
 	{
 		assert(lock.is_locking(mut_));
 
-		vector<unsigned> cpu_thread_cnts;
+		vector<size_t> cpu_thread_cnts;
 		figure_cpu_thread_counts(lock, cpu_thread_cnts);
 		if (cpu_thread_cnts.empty())
 			return;
@@ -525,7 +526,7 @@ namespace qak { //==============================================================
 		while (cnt_to_stop)
 		{
 			//	Figure which cpu_ix is the busiest (i.e., has the most threads).
-			unsigned busiest_cpu_cnt = 0;
+			std::size_t busiest_cpu_cnt = 0;
 			for (size_t cpu_ix = 0; cpu_ix < cpu_thread_cnts.size(); ++cpu_ix)
 				if (busiest_cpu_cnt < cpu_thread_cnts[cpu_ix])
 				{
@@ -537,19 +538,19 @@ namespace qak { //==============================================================
 
 			//	Pick a thread from some cpu at least as busy as the busiest cpu, or some less-busy cpu
 			//	if we can't find any that are stoppable there.
-			for (unsigned pass = 0; pass <= busiest_cpu_cnt; ++pass)
+			for (std::size_t pass = 0; pass <= busiest_cpu_cnt; ++pass)
 			{
 				for (auto & rp_threadinfo : threadinfos_)
 				{
 					//	The cnt of threads on the cpu that this thread is on, if the cpu is still in range.
-					optional<unsigned> opt_cpu_ix;
+					optional<std::size_t> opt_cpu_ix;
 					{
-						unsigned cpu_ix = rp_threadinfo->cpu_ix;
+						std::size_t cpu_ix = rp_threadinfo->cpu_ix;
 						if (cpu_ix < cpu_thread_cnts.size())
 							opt_cpu_ix = cpu_ix;
 					}
 
-					unsigned cpu_cnt =  opt_cpu_ix ? cpu_thread_cnts[*opt_cpu_ix] : unsigned(-1);
+					std::size_t cpu_cnt = opt_cpu_ix ? cpu_thread_cnts[*opt_cpu_ix] : std::size_t(-1);
 
 					thread_state ts = rp_threadinfo->state;
 					if (    busiest_cpu_cnt - pass <= cpu_cnt
@@ -577,7 +578,7 @@ namespace qak { //==============================================================
 
 	void thread_group_data::stop_specific_thread(mutex_lock & lock, rptr<thread_info> const & rp_threadinfo)
 	{
-		assert(lock.is_locking(mut_));
+		lock; assert(lock.is_locking(mut_));
 
 		thread_state ts = rp_threadinfo->state;
 		if (thread_state::stoppable <= ts && ts < thread_state::stop_requested)

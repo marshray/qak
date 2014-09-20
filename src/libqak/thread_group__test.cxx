@@ -32,8 +32,10 @@
 
 namespace zzz { //=====================================================================================================|
 
-	void thfn(unsigned cpu_ix, qak::thread_group::provide_thread_stop_fn_t provide_thread_stop_fn)
+	void thfn(std::size_t cpu_ix, qak::thread_group::provide_thread_stop_fn_t provide_thread_stop_fn)
 	{
+		cpu_ix; // reference the unreferenced
+
 		struct stop_flag : qak::rpointee_base<stop_flag>
 		{
 			qak::atomic<bool> b;
@@ -55,7 +57,7 @@ namespace zzz { //==============================================================
 	QAKtest_anon()
 	{
 		//	constructor/destructor
-		qak::thread_group tg(thfn);
+		qak::thread_group::RP ptg(new qak::thread_group(thfn));
 	}
 
 	QAKtest_anon()
@@ -63,7 +65,8 @@ namespace zzz { //==============================================================
 		qak::stopwatch sw;
 
 		//	constructor/destructor
-		qak::thread_group tg(thfn);
+		qak::thread_group::RP ptg(new qak::thread_group(thfn));
+		qak::thread_group & tg = *ptg;
 
 		unsigned target_cnt_threads = qak::host_info::cnt_threads_recommended();
 		target_cnt_threads *= 10;

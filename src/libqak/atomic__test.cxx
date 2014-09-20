@@ -120,6 +120,10 @@ namespace zzz { //==============================================================
 	QAKtest_anon() { do_test<unsigned int>(); }
 	QAKtest_anon() { do_test<signed long>(); }
 	QAKtest_anon() { do_test<unsigned long>(); }
+	QAKtest_anon() { do_test<signed long long>(); }
+	QAKtest_anon() { do_test<unsigned long long>(); }
+	QAKtest_anon() { do_test<std::int64_t>(); }
+	QAKtest_anon() { do_test<std::uint64_t>(); }
 
 	QAKtest_anon() { do_test_ptr<unsigned char *>(); }
 	QAKtest_anon() { do_test_ptr<unsigned char const *>(); }

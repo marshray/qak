@@ -22,12 +22,7 @@
 #include "qak/now.hxx"
 
 #include "qak/config.hxx"
-#if QAK_POSIX
-#	include <unistd.h> // usleep
-#else
-	void usleep(long) { throw 0; }
-#endif
-
+#include "qak/thread.hxx"
 #include "qak/test_app_pre.hxx"
 #include "qak/test_macros.hxx"
 
@@ -35,34 +30,41 @@ namespace zzz { //==============================================================
 
 	QAKtest_anon()
 	{
-		::usleep(1000);
+		::qak::this_thread::sleep_ns(1000);
 		int64_t t_ns = read_time_source(qak::time_source::wallclock_ns);
 		QAK_verify( 1 < t_ns && t_ns < int64_t(10)*1000*1000*1000 );
 	}
 
 	QAKtest_anon()
 	{
-		::usleep(1000);
+		::qak::this_thread::sleep_ns(1000);
 		int64_t t_ns = read_time_source(qak::time_source::realtime_ns);
 		QAK_verify( 1 < t_ns && t_ns < int64_t(10)*1000*1000*1000 );
 	}
 
 	QAKtest_anon()
 	{
-		::usleep(1000);
+		::qak::this_thread::sleep_ns(1000);
 		int64_t t0_ns = read_time_source(qak::time_source::cpu_thread_ns);
-		QAK_verify( t0_ns );
-		::usleep(1000);
-		int64_t t1_ns = read_time_source(qak::time_source::cpu_thread_ns);
-		QAK_verify( t0_ns != t1_ns );
+		bool advanced = false;
+		for (unsigned n = 0; n < 1*1000*1000*1000; ++n)
+		{
+			int64_t t1_ns = read_time_source(qak::time_source::cpu_thread_ns);
+			if (t0_ns < t1_ns)
+			{
+				advanced = true;
+				break;
+			}
+		}
+		QAK_verify( advanced );
 	}
 
 	QAKtest_anon()
 	{
-		::usleep(1000);
+		::qak::this_thread::sleep_ns(1000);
 		int64_t t0_cycles = read_time_source(qak::time_source::cpu_cycles);
 		QAK_verify( t0_cycles );
-		::usleep(1000);
+		::qak::this_thread::sleep_ns(1000);
 		int64_t t1_cycles = read_time_source(qak::time_source::cpu_cycles);
 		QAK_verify( t0_cycles != t1_cycles );
 	}

@@ -24,7 +24,9 @@
 #else
 #define qak_test_app_pre_hxx_INCLUDED_
 
+#include "qak/config.hxx"
 #include "qak/prng64.hxx"
+#include "qak/macros.hxx"
 
 //=====================================================================================================================|
 
@@ -66,10 +68,6 @@ namespace qak_test_ {
 //=====================================================================================================================|
 //
 //	Implementation stuff.
-
-//	The Boost preprocessor library has some alternative implementations for different compilers.
-#define QAK_PASTE_IMP_(a, b) a ## b
-#define QAK_PASTE(a, b) QAK_PASTE_IMP_(a, b)
 
 #define QAKtest_IMP_(ID, ...) QAKtest_IMP2_(QAK_PASTE(test_, QAK_PASTE(ID, QAK_PASTE(_, __LINE__))), ID, __VA_ARGS__)
 #define QAKtest_IMP2_(TYPE_NAME, ID, ...)                           \

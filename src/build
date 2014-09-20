@@ -1,7 +1,7 @@
 #!/bin/bash
 #=================================================================================================|
 #
-#   Copyright (c) 2011, Marsh Ray
+#   Copyright (c) 2011-2013, Marsh Ray
 #
 #   Permission to use, copy, modify, and/or distribute this software for any
 #   purpose with or without fee is hereby granted, provided that the above
@@ -20,16 +20,14 @@
 set -o errexit
 #set -o xtrace
 
+source $(dirname $(readlink -n -f "$0"))/zz-build-config "$@"
+
 #	Command-line options.
 unset -v NO_TEST
 for arg in '--debug' "$@"
 do
-	if [[ "$arg" == "--debug" ]]; then
-		BUILD_TYPE=debug
-	elif [[ "$arg" == "--release" ]]; then
-		BUILD_TYPE=release
-	elif [[ "$arg" == "--profile" ]]; then
-		BUILD_TYPE=profile
+	if [[ "$arg" == "--debug" || "$arg" == "--release" || "$arg" == "--profile" ]]; then
+		unset NULL; # handled already
 	elif [[ "$arg" == "--no-test" ]]; then
 		NO_TEST="--no-test"
 	elif [[ "$arg" == "--help" ]]; then
@@ -40,38 +38,6 @@ do
 		exit 1
 	fi
 done
-
-#	You can specify the qak/src directory in the environment variable QAK_SRC_DIR,
-#	or this script will try to figure it out from its own location.
-
-THIS_SCRIPT=$(readlink -n -f "$0")
-echo "THIS_SCRIPT=$THIS_SCRIPT"
-
-THIS_SCRIPT_DIR=$(dirname "$THIS_SCRIPT")
-echo "THIS_SCRIPT_DIR=$THIS_SCRIPT_DIR"
-
-if [[ ! -d "$QAK_SRC_DIR" ]]; then QAK_SRC_DIR=$(dirname "$THIS_SCRIPT"); fi
-echo "QAK_SRC_DIR=$QAK_SRC_DIR"
-export QAK_SRC_DIR
-
-#	You can specify the build root directory in the environment variable QAK_BUILD_ROOT_DIR,
-#	or it uses a directory named 'build' as a sibling of $QAK_SRC_DIR
-
-if [[ -z "$QAK_BUILD_ROOT_DIR" ]]; then
-	QAK_BUILD_ROOT_DIR=$(readlink -f "$QAK_SRC_DIR/..")"/build"
-	unset -v QAK_BUILD_DIR
-fi
-
-#	The build directory is named after the build type, under $QAK_BUILD_ROOT_DIR
-QAK_BUILD_DIR="$QAK_BUILD_ROOT_DIR/$BUILD_TYPE"
-
-echo "QAK_BUILD_ROOT_DIR=$QAK_BUILD_ROOT_DIR"
-echo "QAK_BUILD_DIR=$QAK_BUILD_DIR"
-
-# This madness is required by Debian/Ubuntu's move to mutiarch
-export LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
-export C_INCLUDE_PATH=/usr/include/x86_64-linux-gnu
-export CPLUS_INCLUDE_PATH=/usr/include/x86_64-linux-gnu
 
 SUCCESS_FLAG=$QAK_BUILD_DIR/success.out
 if [[ -f "$SUCCESS_FLAG" ]]; then rm "$SUCCESS_FLAG"; fi

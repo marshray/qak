@@ -24,36 +24,66 @@
 #include "qak/test_app_pre.hxx"
 #include "qak/test_macros.hxx"
 
+using qak::mutex;
+using qak::mutex_lock;
+using qak::optional;
+
 namespace zzz { //=====================================================================================================|
 
 	QAKtest_anon()
 	{
-		qak::mutex mut;
+		mutex mut;
 	}
 
 	QAKtest_anon()
 	{
-		qak::mutex mut;
-		qak::mutex_lock lock(mut);
+		mutex mut;
+		mutex_lock lock(mut);
 		QAK_verify( lock.is_locking(mut) );
 	}
 
 	QAKtest_anon()
 	{
-		qak::mutex mut;
-		qak::mutex_lock lock = mut.lock();
-		QAK_verify( lock.is_locking(mut) );
+		mutex mut;
 
-		qak::optional<qak::mutex_lock> opt_lock = mut.try_lock();
-		QAK_verify( !opt_lock );
+		qak::optional<mutex_lock> opt_lock1 = mut.try_lock();
+		QAK_verify( opt_lock1 );
+		QAK_verify( opt_lock1->is_locking(mut) );
+		QAK_verify( mut.is_locked_by_this_thread() );
+
+		opt_lock1.reset();
+
+		QAK_verify( !mut.is_locked_by_this_thread() );
+
+		//	Really we need another thread to test this.
+		//qak::optional<mutex_lock> opt_lock2 = mut.try_lock();
+		//QAK_verify( !opt_lock2 );
 	}
 
 	QAKtest_anon()
 	{
-		qak::mutex mut;
-		qak::optional<qak::mutex_lock> opt_lock = mut.try_lock();
+		mutex mut;
+		qak::optional<mutex_lock> opt_lock = mut.try_lock();
 		QAK_verify( opt_lock );
 		QAK_verify( opt_lock->is_locking(mut) );
+	}
+
+	QAKtest_anon() // verify it's non-recursively-acquireable
+	{
+		mutex mut;
+
+		mutex_lock lock = mut.lock();
+		QAK_verify( lock.is_locking(mut) );
+		QAK_verify( mut.is_locked_by_this_thread() );
+
+		bool throwed = false;
+		try
+		{
+			mut.try_lock();
+		}
+		catch (...) { throwed = true; }
+
+		QAK_verify(throwed);
 	}
 
 } // namespace zzz ====================================================================================================|

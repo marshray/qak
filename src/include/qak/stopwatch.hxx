@@ -22,6 +22,7 @@
 #ifndef qak_stopwatch_hxx_INCLUDED_
 #define qak_stopwatch_hxx_INCLUDED_
 
+#include "qak/config.hxx"
 #include "qak/now.hxx"
 
 namespace qak { //=====================================================================================================|
