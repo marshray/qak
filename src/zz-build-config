@@ -63,8 +63,13 @@ fi
 #	You can specify the qak/src directory in the environment variable QAK_SRC_DIR,
 #	or this script will try to figure it out from its own location.
 
-if [[ ! -d "$QAK_SRC_DIR" ]]; then QAK_SRC_DIR=$(dirname $(readlink -n -f "$0")); fi
+if [[ ! -d "$QAK_SRC_DIR" ]]; then
+	QAK_SRC_DIR=$(dirname $(readlink -n -f "$0"))
+fi
 echo "QAK_SRC_DIR=$QAK_SRC_DIR"
+if [[ ! -d "$QAK_SRC_DIR" ]]; then
+	echo "ERROR Couldn't figure out the QAK_SRC_DIR"
+fi
 export QAK_SRC_DIR
 
 #	You can specify the build root directory in the environment variable QAK_BUILD_ROOT_DIR,

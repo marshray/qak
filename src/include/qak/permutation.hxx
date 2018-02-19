@@ -337,13 +337,13 @@ namespace permutation_imp {
 namespace std {
 
 	template <class size_type_T>
-	inline void swap(::qak::index_permutation<size_type_T> & a, ::qak::index_permutation<size_type_T> & b)
+	inline void swap(qak::index_permutation<size_type_T> & a, qak::index_permutation<size_type_T> & b)
 	{
 		a.swap(b);
 	}
 
 	//? template <class size_type_T> struct hash;
-	//? template <class size_type_T> struct hash<::qak::index_permutation<size_type_T>>;
+	//? template <class size_type_T> struct hash<qak::index_permutation<size_type_T>>;
 
 } // namespace std ====================================================================================================|
 

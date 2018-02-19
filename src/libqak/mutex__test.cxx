@@ -30,19 +30,19 @@ using qak::optional;
 
 namespace zzz { //=====================================================================================================|
 
-	QAKtest_anon()
+	QAKtest(mutex_default_construct)
 	{
 		mutex mut;
 	}
 
-	QAKtest_anon()
+	QAKtest(mutex_lock)
 	{
 		mutex mut;
 		mutex_lock lock(mut);
 		QAK_verify( lock.is_locking(mut) );
 	}
 
-	QAKtest_anon()
+	QAKtest(mutex_try_lock)
 	{
 		mutex mut;
 
@@ -60,7 +60,7 @@ namespace zzz { //==============================================================
 		//QAK_verify( !opt_lock2 );
 	}
 
-	QAKtest_anon()
+	QAKtest(mutex_try_lock_2)
 	{
 		mutex mut;
 		qak::optional<mutex_lock> opt_lock = mut.try_lock();
@@ -68,7 +68,7 @@ namespace zzz { //==============================================================
 		QAK_verify( opt_lock->is_locking(mut) );
 	}
 
-	QAKtest_anon() // verify it's non-recursively-acquireable
+	QAKtest(mutex_non_recursively_acquireable)
 	{
 		mutex mut;
 

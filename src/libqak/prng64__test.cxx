@@ -130,7 +130,7 @@ namespace zzz { //==============================================================
 
 #if defined(QAK_INT128_TYPE)
 		distribution_test<
-			std::conditional<std::numeric_limits<QAK_INT128_TYPE>::is_specialized, QAK_INT128_TYPE, int::type
+			std::conditional<std::numeric_limits<QAK_INT128_TYPE>::is_specialized, QAK_INT128_TYPE, int>::type
 		>();
 #endif
 

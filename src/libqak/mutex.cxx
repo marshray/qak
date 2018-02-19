@@ -21,71 +21,56 @@
 
 #include "qak/mutex.hxx"
 
+#include "qak/alignof.hxx"
 #include "qak/atomic.hxx"
 #include "qak/config.hxx"
 #include "qak/fail.hxx"
+#include "qak/thread.hxx" // thread_id_t
 
 #include <cstdint>
-
-#if QAK_THREAD_PTHREAD
-
-//		Error code definitions from The Open Group - Single UNIX® Specification, Version 2
-#	include <errno.h> // pthread error codes
-#	include <pthread.h>
-
-#elif QAK_THREAD_WIN32
-#
-#else
-#	pragma message "error: port me"
-#endif
-
 #include <cassert>
 
-#if QAK_POSIX
-#
+#include <iostream>//?
+#include <iomanip>//?
+
+#if QAK_THREAD_PTHREAD
+	// Error code definitions from The Open Group - Single UNIX Specification, Version 2
+#	include <errno.h> // pthread error codes
+#	include <pthread.h>
 #elif QAK_THREAD_WIN32
 #	include "../platforms/win32/win32_lite.hxx"
-#endif // of elif QAK_THREAD_WIN32
+#endif
 
 namespace qak { //=====================================================================================================|
 
+	typedef qak::atomic<thread_id_t> atomic_thread_id_t;
+
+#	define OWNING_THREAD_ID(p)       (*reinterpret_cast<atomic_thread_id_t *      >(&p->imp_[0]))
+#	define OWNING_THREAD_ID_const(p) (*reinterpret_cast<atomic_thread_id_t const *>(&p->imp_[0]))
+
 #if QAK_THREAD_PTHREAD
-
-	typedef qak::atomic<pthread_t> atomic_thread_id_t;
-
-	//	pthreads doesn't define an invalid pthread_id, but I'm hoping that
-	//		0xFFFFFFFFFFFFF0FF (64 bits)
-	//		        0xFFFFF0FF (32 bits)
-	//	can never occur in practice.
-	//
-	static pthread_t const invalid_pthread_id = ((pthread_t(0) - pthread_t(1)) - pthread_t(0x0F00));
 
 #	define MUTEX(p) (*reinterpret_cast<pthread_mutex_t *>(&p->imp_[1]))
 
 #elif QAK_THREAD_WIN32
 
-	typedef qak::atomic<win32::DWORD> atomic_thread_id_t;
-
 #	define CRITSEC(p) (*reinterpret_cast<win32::CRITICAL_SECTION *>(&p->imp_[1]))
 
 #endif // of elif QAK_THREAD_WIN32
-
-#	define OWNING_THREAD_ID(p)       (*reinterpret_cast<atomic_thread_id_t *      >(&p->imp_[0]))
-#	define OWNING_THREAD_ID_const(p) (*reinterpret_cast<atomic_thread_id_t const *>(&p->imp_[0]))
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
 	mutex::mutex() // : imp_ not initialized
 	{
+		static_assert(sizeof(atomic_thread_id_t) <= sizeof(imp_elem_t), "increase size of imp_t");
+		static_assert(QAK_alignof_t(atomic_thread_id_t) <= QAK_alignof_x(imp_elem_t), "increase align of imp_");
+
 #if QAK_THREAD_PTHREAD
 
-		static_assert(sizeof(pthread_t) <= sizeof(imp_[0]), "increase size of imp_" );
-		static_assert(QAK_alignof_t(pthread_t) <= QAK_alignof_x(imp_), "increase align of imp_");
+		new (&OWNING_THREAD_ID(this)) atomic_thread_id_t(invalid_thread_id_value);
 
-		static_assert(sizeof(pthread_mutex_t) <= (sizeof(imp_) - sizeof(imp_[0])), "increase size of imp_" );
-		static_assert(QAK_alignof_t(pthread_mutex_t) <= QAK_alignof_x(imp_[0]), "increase align of imp_");
-
-		new (&OWNING_THREAD_ID(this)) atomic_thread_id_t(invalid_pthread_id);
+		static_assert(sizeof(pthread_mutex_t) <= sizeof(imp_t) - sizeof(imp_elem_t), "increase size of imp_t");
+		static_assert(QAK_alignof_t(pthread_mutex_t) <= QAK_alignof_t(imp_elem_t), "increase align of imp_elem_t");
 
 		//	http://pubs.opengroup.org/onlinepubs/007908799/xsh/pthread_mutex_init.html
 		int err = ::pthread_mutex_init(
@@ -95,7 +80,7 @@ namespace qak { //==============================================================
 		{
 			//char const * psz = 0;
 			//switch (err)
-			//{				Error code definitions from The Open Group - Single UNIX® Specification, Version 2
+			//{				Error code definitions from The Open Group - Single UNIX Specification, Version 2
 			//case EAGAIN:
 			//	psz = "The system lacked the necessary resources (other than memory) to initialise another mutex.";
 			//	break;
@@ -113,17 +98,16 @@ namespace qak { //==============================================================
 			//	psz = "The value specified by attr is invalid.";
 			//	break;
 			//}
-			throw_unconditionally(); // internal error
+			fail(); // internal error
 		}
 
 #elif QAK_THREAD_WIN32
 
-		static_assert(sizeof(atomic_thread_id_t) <= sizeof(imp_[0]),
-			"something is wrong with the calculation of the imp_ size");
 		new (&OWNING_THREAD_ID(this)) atomic_thread_id_t(win32::INVALID_THREAD_ID);
 
-		static_assert(sizeof(win32::CRITICAL_SECTION) <= sizeof(qak::mutex::imp_) - sizeof(qak::mutex::imp_[0]),
-			"something else wrong with the calculation of the imp_ size");
+		static_assert(sizeof(win32::CRITICAL_SECTION) <= sizeof(imp_t) - sizeof(imp_elem_t), "increase size of imp_t");
+		static_assert(QAK_alignof_t(win32::CRITICAL_SECTION) <= QAK_alignof_t(imp_elem_t), "increase align of imp_elem_t");
+
 		win32::InitializeCriticalSection(&CRITSEC(this));
 
 #else
@@ -136,34 +120,36 @@ namespace qak { //==============================================================
 	mutex::~mutex()
 	{
 #if QAK_THREAD_PTHREAD
+//std::cerr << "pthread_mutex_destroy\n";//?
 
 		//	http://pubs.opengroup.org/onlinepubs/007908799/xsh/pthread_mutex_destroy.html
 		int err = ::pthread_mutex_destroy(
 			&MUTEX(this) ); // pthread_mutex_t *mutex
-		assert(!err);
 		if (err)
 		{
-			//char const * psz = 0;
-			//switch (err)
-			//{				Error code definitions from The Open Group - Single UNIX® Specification, Version 2
-			//case EAGAIN:
-			//	psz = "The system lacked the necessary resources (other than memory) to initialise another mutex.";
-			//	break;
-			//case ENOMEM:
-			//	psz = "Insufficient memory exists to initialise the mutex.";
-			//	break;
-			//case EPERM:
-			//	psz = "The caller does not have the privilege to perform the operation.";
-			//	break;
-			//case EBUSY:
-			//	psz = "The implementation has detected an attempt to destroy the object referenced by mutex while it "
-			//		"is locked or referenced (for example, while being used in a pthread_cond_wait() or "
-			//		"pthread_cond_timedwait()) by another thread.";
-			//	break;
-			//case EINVAL:
-			//	psz = "The value specified by mutex is invalid.";
-			//	break;
-			//}
+			char const * psz = "Unknown mutex_destroy error.";
+			switch (err)
+			{				// Error code definitions from The Open Group - Single UNIX Specification, Version 2
+			case EAGAIN:
+				psz = "The system lacked the necessary resources (other than memory) to initialise another mutex.";
+				break;
+			case ENOMEM:
+				psz = "Insufficient memory exists to initialise the mutex.";
+				break;
+			case EPERM:
+				psz = "The caller does not have the privilege to perform the operation.";
+				break;
+			case EBUSY:
+				psz = "The implementation has detected an attempt to destroy the object referenced by mutex while it "
+					"is locked or referenced (for example, while being used in a pthread_cond_wait() or "
+					"pthread_cond_timedwait()) by another thread.";
+				break;
+			case EINVAL:
+				psz = "The value specified by mutex is invalid.";
+				break;
+			}
+std::cerr << psz << "\n";//?
+			assert(!psz);
 			//? log this message?
 		}
 
@@ -183,40 +169,41 @@ namespace qak { //==============================================================
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
-	mutex_lock mutex::lock()
+	mutex::lock_type mutex::lock()
 	{
 #if QAK_THREAD_PTHREAD
 
 		//	http://pubs.opengroup.org/onlinepubs/007908799/xsh/pthread_mutex_lock.html
 		int err = ::pthread_mutex_lock(
 			&MUTEX(this) ); // pthread_mutex_t *mutex
-		assert(!err);
 		if (err)
 		{
-			//char const * psz = 0;
-			//switch (err)
-			//{				Error code definitions from The Open Group - Single UNIX® Specification, Version 2
-			//case EINVAL:
-			//	psz = "The mutex was created with the protocol attribute having the value PTHREAD_PRIO_PROTECT "
-			//		"and the calling thread's priority is higher than the mutex's current priority ceiling ";
-			//		"or the value specified by mutex does not refer to an initialised mutex object.";
-			//	break;
-			//case EAGAIN:
-			//	psz = "The mutex could not be acquired because the maximum number of recursive locks for mutex "
-			//		"has been exceeded.";
-			//	break;
-			//case EDEADLK:
-			//	psz = "The current thread already owns the mutex.";
-			//	break;
-			//}
-			throw_unconditionally(); // internal error
+			char const * psz = "Unknown mutex_lock error.";
+			switch (err)
+			{				// Error code definitions from The Open Group - Single UNIX® Specification, Version 2
+			case EINVAL:
+				psz = "The mutex was created with the protocol attribute having the value PTHREAD_PRIO_PROTECT "
+					"and the calling thread's priority is higher than the mutex's current priority ceiling "
+					"or the value specified by mutex does not refer to an initialised mutex object.";
+				break;
+			case EAGAIN:
+				psz = "The mutex could not be acquired because the maximum number of recursive locks for mutex "
+					"has been exceeded.";
+				break;
+			case EDEADLK:
+				psz = "The current thread already owns the mutex.";
+				break;
+			}
+std::cerr << psz << "\n";//?
+			assert(!psz);
+			fail(); // internal error
 		}
 
-		assert(::pthread_equal(OWNING_THREAD_ID_const(this), invalid_pthread_id));
+		assert(::pthread_equal(OWNING_THREAD_ID_const(this), invalid_thread_id_value));
 
 		OWNING_THREAD_ID(this) = ::pthread_self();
 
-		assert(!::pthread_equal(OWNING_THREAD_ID_const(this), invalid_pthread_id));
+		assert(!::pthread_equal(OWNING_THREAD_ID_const(this), invalid_thread_id_value));
 
 #elif QAK_THREAD_WIN32
 
@@ -225,7 +212,7 @@ namespace qak { //==============================================================
 		if (OWNING_THREAD_ID_const(this) == win32::GetCurrentThreadId())
 		{
 			win32::LeaveCriticalSection(&CRITSEC(this));
-			throw_unconditionally(); //	Already owns the mutex.
+			fail(); //	Already owns the mutex.
 		}
 
 		assert(OWNING_THREAD_ID_const(this) == win32::INVALID_THREAD_ID);
@@ -258,8 +245,11 @@ namespace qak { //==============================================================
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
-	optional<mutex_lock> mutex::try_lock()
+	optional<mutex::lock_type> mutex::try_lock()
 	{
+		if (this->is_locked_by_this_thread())
+			fail(); //	Already owns the mutex.
+
 #if QAK_THREAD_PTHREAD
 
 		//	http://pubs.opengroup.org/onlinepubs/007908799/xsh/pthread_mutex_lock.html
@@ -291,18 +281,16 @@ namespace qak { //==============================================================
 			throw 0;
 		}
 
+		assert(OWNING_THREAD_ID_const(this) == invalid_thread_id_value);
+
+		OWNING_THREAD_ID(this) = ::pthread_self();
+
 #elif QAK_THREAD_WIN32
 
 		win32::BOOL entered = win32::TryEnterCriticalSection(&CRITSEC(this));
 
 		if (!entered)
 			return optional<mutex_lock>();
-
-		if (OWNING_THREAD_ID_const(this) == win32::GetCurrentThreadId())
-		{
-			win32::LeaveCriticalSection(&CRITSEC(this));
-			throw_unconditionally(); //	Already owns the mutex.
-		}
 
 		assert(OWNING_THREAD_ID_const(this) == win32::INVALID_THREAD_ID);
 
@@ -324,6 +312,17 @@ namespace qak { //==============================================================
 	{
 		mutex_lock ml = m.lock();
 		std::swap(ml.p_m_, p_m_);
+
+		//	Verify we have a lock on mutex *p_m_.
+#if QAK_THREAD_PTHREAD
+
+		assert(::pthread_equal(OWNING_THREAD_ID_const(p_m_), ::pthread_self()));
+
+#elif QAK_THREAD_WIN32
+
+		assert(p_m_->is_locked_by_this_thread());
+
+#endif // of elif QAK_THREAD_WIN32
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
@@ -343,13 +342,10 @@ namespace qak { //==============================================================
 		{
 #if QAK_THREAD_PTHREAD
 
-			//? assert(OWNING_THREAD_ID_const(p_m_) == win32::GetCurrentThreadId());
+			//	Verify we have a lock on mutex *p_m_.
+			assert(::pthread_equal(OWNING_THREAD_ID_const(p_m_), ::pthread_self()));
 
-			//? OWNING_THREAD_ID(p_m_) = win32::INVALID_THREAD_ID;
-
-			assert(!::pthread_equal(OWNING_THREAD_ID_const(p_m_), invalid_pthread_id));
-
-			OWNING_THREAD_ID(p_m_) = invalid_pthread_id;
+			OWNING_THREAD_ID(p_m_) = invalid_thread_id_value;
 
 			int err = ::pthread_mutex_unlock(
 				&MUTEX(p_m_) ); // pthread_mutex_t *mutex
@@ -370,7 +366,7 @@ namespace qak { //==============================================================
 				//	psz = "The current thread does not own the mutex.";
 				//	break;
 				//}
-				throw_unconditionally(); // internal error
+				fail(); // internal error
 			}
 
 #elif QAK_THREAD_WIN32
@@ -391,8 +387,25 @@ namespace qak { //==============================================================
 
 	mutex_lock::mutex_lock(mutex_lock && that) : p_m_(that.p_m_)
 	{
-		assert(p_m_);
 		that.p_m_ = 0;
+
+		//	Verify we have a lock on mutex *p_m_.
+		assert(p_m_);
+
+#if QAK_THREAD_PTHREAD
+
+		thread_id_t tid_self = ::pthread_self();
+		thread_id_t tid_owning = OWNING_THREAD_ID_const(p_m_);
+
+		assert(::pthread_equal(OWNING_THREAD_ID_const(p_m_), ::pthread_self()));
+
+#elif QAK_THREAD_WIN32
+
+		assert(OWNING_THREAD_ID_const(p_m_) == win32::GetCurrentThreadId());
+
+#else
+#	error "port me"
+#endif
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|

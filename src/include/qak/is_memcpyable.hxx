@@ -32,8 +32,6 @@ namespace qak { //==============================================================
 
 namespace imp_ {
 
-#if !QAK_COMPILER_FAILS_CONSTEXPR
-
 	//? TODO	Which PODs are memcpyable? Those which don't contain pointers to themselves?
 	template <class NCVT> constexpr
 	typename std::enable_if<
@@ -51,24 +49,6 @@ namespace imp_ {
 		return false;
 	}
 
-#else // thus compiler supports constexpr
-
-	template <class NCVT, class Enable = void> struct is_memcpyable_detect : std::false_type { };
-
-	template <class NCVT> struct is_memcpyable_detect<
-		NCVT,
-		typename std::enable_if<
-				   std::is_integral<NCVT>::value
-				|| std::is_floating_point<NCVT>::value
-				|| std::is_enum<NCVT>::value
-				|| std::is_member_function_pointer<NCVT>::value
-				// || arrays of memcpyable types ... std::remove_all_extents<NCVT>
-			>::type
-		> : std::true_type
-	{ };
-
-#endif // of thus compiler supports constexpr
-
 } // namespace imp_
 
 	//=================================================================================================================|
@@ -76,8 +56,6 @@ namespace imp_ {
 	//	Defines whether or not a type can be copied or moved as raw bytes.
 	//	Much like std::is_pod, but we could perhaps bend the rules a bit when we know about
 	//	the behavior of 'nontrivial' constructors and destructors.
-
-#if !QAK_COMPILER_FAILS_CONSTEXPR
 
 	//	Consider specializing this constexpr function for your own classes.
 	template <class NCVT> constexpr
@@ -91,17 +69,6 @@ namespace imp_ {
 	{
 		return is_memcpyable_NCV<typename std::remove_cv<T>::type>();
 	}
-
-#else // thus compiler supports constexpr
-
-	//	Consider specializing this type for your own classes.
-	template <class NCVT> struct is_memcpyable_NCV : imp_::is_memcpyable_detect<NCVT> { };
-
-	template <class T> struct is_memcpyable :
-		is_memcpyable_NCV<typename std::remove_cv<T>::type>
-	{ };
-
-#endif // of thus compiler supports constexpr
 
 	//-----------------------------------------------------------------------------------------------------------------|
 

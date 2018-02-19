@@ -96,7 +96,7 @@ namespace qak { //==============================================================
 } // namespace qak ====================================================================================================|
 namespace std {
 
-	inline void swap(::qak::thread_group & a, ::qak::thread_group & b)
+	inline void swap(qak::thread_group & a, qak::thread_group & b)
 	{
 		a.swap(b);
 	}

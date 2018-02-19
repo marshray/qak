@@ -22,13 +22,8 @@
 #ifndef qak_threadls_hxx_INCLUDED_
 #define qak_threadls_hxx_INCLUDED_
 
-#include "qak/config.hxx"
-//#include <qak/atomic.hxx>
+#include "qak/config.hxx" // QAK_noexcept
 #include <qak/rptr.hxx>
-//#include <qak/optional.hxx>
-
-//#include <cstdint> // std::uintptr_t
-//#include <functional>
 
 namespace qak { //=====================================================================================================|
 

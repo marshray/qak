@@ -110,7 +110,7 @@ namespace qak { namespace ucs { //==============================================
 		static bool is_valid(T val_in)
 		{
 			char32_t c32 = static_cast<char32_t>(val_in);
-			return    (0x000000 <= c32 && c32 < 0x00D800)
+			return    (                   c32 < 0x00D800)
 				   || (0x00E000 <= c32 && c32 < 0x110000);
 		}
 

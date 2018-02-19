@@ -23,6 +23,7 @@
 
 #include <utility> // std::move
 
+#include "qak/fail.hxx"
 #include "qak/test_app_pre.hxx"
 #include "qak/test_macros.hxx"
 
@@ -40,7 +41,9 @@ namespace zzz { //==============================================================
 
 		~test_base()
 		{
-			QAK_verify( rb_ );
+			//QAK_verify( rb_ ); // C4297, C2694 can't throw from this destructor
+			qak::fail_unless(rb_);
+
 			rb_ = false;
 		}
 

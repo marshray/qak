@@ -71,6 +71,8 @@ function buildit
 
 while true; do
 	buildit && echo -n ':-) ---- build successful ----' || echo ':-P **** build failed ****'
+	date
+
 	if [[ ! -e `which inotifywait` ]]; then echo; echo 'exiting, no inotifywait. Package may be inotify-tools'; exit 1; fi
 
 	if inotifywait -r -e modify "$QAK_SRC_DIR" >>/dev/null 2>&1 ; then

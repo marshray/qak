@@ -29,28 +29,28 @@ namespace zzz { //==============================================================
 	QAKtest_anon()
 	{
 		bool throwed = false;
-		try { qak::throw_if(1 == 1); } catch (...) { throwed = true; }
+		try { qak::fail_if(1 == 1); } catch (...) { throwed = true; }
 		QAK_verify( throwed );
 	}
 
 	QAKtest_anon()
 	{
 		bool throwed = false;
-		try { qak::throw_unless(1 == 1); } catch (...) { throwed = true; }
+		try { qak::fail_unless(1 == 1); } catch (...) { throwed = true; }
 		QAK_verify( !throwed );
 	}
 
 	QAKtest_anon()
 	{
 		bool throwed = false;
-		try { qak::throw_if(1 == 2); } catch (...) { throwed = true; }
+		try { qak::fail_if(1 == 2); } catch (...) { throwed = true; }
 		QAK_verify( !throwed );
 	}
 
 	QAKtest_anon()
 	{
 		bool throwed = false;
-		try { qak::throw_unless(1 == 2); } catch (...) { throwed = true; }
+		try { qak::fail_unless(1 == 2); } catch (...) { throwed = true; }
 		QAK_verify( throwed );
 	}
 

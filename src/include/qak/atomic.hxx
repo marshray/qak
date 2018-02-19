@@ -35,7 +35,7 @@
 
 #include "qak/config.hxx"
 
-#include <type_traits> // is_integral, enable_if
+#include <type_traits> // is_integral, enable_if, is_trivially_copy_constructible
 #include <cstdint> // std::uintN_t
 
 #if defined(_MSC_VER)
@@ -186,7 +186,7 @@ namespace atomic_imp_ns_ { //===================================================
 		typedef typename atomic_imp_ns_::azi_stor<repr_props_type::N> stor_type;
 
 		static_assert(std::is_integral<T>::value || std::is_pointer<T>::value, "expecting an integral or pointer type.");
-		static_assert(std::has_trivial_copy_constructor<T>::value, "requires a trivially copyable type.");
+		static_assert(std::is_trivially_copy_constructible<T>::value, "requires a trivially copyable type.");
 		static_assert(sizeof(T) <= 8, "Only 1, 2, 4, or 8 byte objects are supported for atomics.");
 		static_assert(sizeof(T) <= sizeof(repr_type), "");
 #if !QAK_COMPILER_FAILS_ALIGNOF_OPERATOR // compiler supports alignof operator
@@ -201,7 +201,7 @@ namespace atomic_imp_ns_ { //===================================================
 
 		atomic_base() QAK_noexcept : stor_(static_cast<repr_type>(0)) { }
 
-		QAK_MAYBE_constexpr atomic_base(T t_in) QAK_noexcept : stor_(static_cast<repr_type>(t_in)) { }
+		constexpr atomic_base(T t_in) QAK_noexcept : stor_(static_cast<repr_type>(t_in)) { }
 
 #if !QAK_COMPILER_FAILS_DELETED_MEMBERS // supports "= delete" syntax
 
@@ -326,7 +326,7 @@ namespace atomic_imp_ns_ { //===================================================
 		> : atomic_base<T>
 	{
 		atomic() QAK_noexcept : atomic_base<T>() { }
-		QAK_MAYBE_constexpr atomic(T t_in) QAK_noexcept : atomic_base<T>(t_in) { }
+		constexpr atomic(T t_in) QAK_noexcept : atomic_base<T>(t_in) { }
 
 #if !QAK_COMPILER_FAILS_DELETED_MEMBERS // supports "= delete" syntax
 		atomic(atomic const &) = delete;
@@ -355,7 +355,7 @@ namespace atomic_imp_ns_ { //===================================================
 	struct atomic<T, typename std::enable_if<std::is_pointer<T>::value>::type> : atomic_base<T>
 	{
 		atomic() QAK_noexcept : atomic_base<T>() { }
-		QAK_MAYBE_constexpr atomic(T t_in) QAK_noexcept : atomic_base<T>(t_in) { }
+		constexpr atomic(T t_in) QAK_noexcept : atomic_base<T>(t_in) { }
 
 #if !QAK_COMPILER_FAILS_DELETED_MEMBERS // supports "= delete" syntax
 		atomic(atomic const &) = delete;

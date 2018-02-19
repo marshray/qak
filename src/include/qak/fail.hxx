@@ -24,13 +24,21 @@
 
 #include "qak/config.hxx"
 
+//#include <exception> // std::exception
+#include <stdexcept> // std::runtime_error
+
 namespace qak { //=====================================================================================================|
+
+	struct todo_exception : std::logic_error
+	{
+		todo_exception() : logic_error("Todo.") { }
+	};
 
 	//=================================================================================================================|
 	//
 	//-	Compile-time fail with type or integral constant expression info.
 
-	namespace ct_die_imp_ {
+	namespace ct_fail_imp_ {
 
 		struct undef_elsewhere { };
 
@@ -40,12 +48,12 @@ namespace qak { //==============================================================
 		template <long ICE, class T = undef_elsewhere> struct QAK_CTMSG_ICE_IS;
 		template <> struct QAK_CTMSG_ICE_IS<0, undef_elsewhere> { enum { value = 1 }; };
 
-	} // QAK..ct_die_imp_
+	} // QAK..ct_fail_imp_
 
 	//	Compile-time message with type.
 	//
 	#define QAK_CTMSG_TYPE(t) enum QAK_ctmsg_enum { \
-		qak_ctmsg_en = sizeof(::qak::ct_die_imp_::QAK_CTMSG_TYPE_IS<t>) }
+		qak_ctmsg_en = sizeof(qak::ct_fail_imp_::QAK_CTMSG_TYPE_IS<t>) }
 
 	//	Compile-time message with type from an expression.
 	//
@@ -54,7 +62,7 @@ namespace qak { //==============================================================
 	//	Compile-time message with integral constant expression.
 	//
 	#define QAK_CTMSG_ICE(i) enum QAK_ctmsg_enum { \
-		qak_ctmsg_en = sizeof(::qak::ct_die_imp_::QAK_CTMSG_ICE_IS<(i)>) \
+		qak_ctmsg_en = sizeof(qak::ct_fail_imp_::QAK_CTMSG_ICE_IS<(i)>) \
 	}; \
 	QAK_ctmsg_enum ctmsg_enum;
 
@@ -64,14 +72,50 @@ namespace qak { //==============================================================
 
 	//	General-purpose throw function.
 	//?	Marking this noinline can sometimes be smaller, faster code for the normal case.
-	inline void throw_unconditionally() { throw 0; }
+	inline void fail()
+	{
+		throw std::runtime_error("Fail.");
+	}
 
 	//-	Run time conditional exceptions (like asserts, but for NDEBUG too).
 
-	template <class T> inline void throw_if(T const & b)     { if (!!b) throw_unconditionally(); }
-	template <class T> inline void throw_unless(T const & b) { throw_if(!b); }
+	//	Raises a fatal error iff the condition is true.
 
-	//=================================================================================================================|
+	template <class T> inline
+		void fail_if(T const & b)
+	{
+		if (b)
+			fail();
+	}
+
+	//	Throws a runtime error iff the condition is false.
+	template <class T> inline
+		void fail_unless(T const & b)
+	{
+		if (!b)
+			fail();
+	}
+
+	//	Throws exception, but pretends to return a specific type and value at compile time.
+	template <class T> inline
+	T fail_expr(const T & t = T())
+	{
+		fail();
+		return t;
+	}
+
+	//	Throws exception, indicating there's work to do.
+	inline void fail_todo()
+	{
+		throw todo_exception();
+	}
+
+	template <class T> inline
+	T fail_todo_expr(const T & t = T())
+	{
+		fail_todo();
+		return t;
+	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
 

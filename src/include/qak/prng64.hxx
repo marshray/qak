@@ -37,6 +37,35 @@
 #endif // def _MSC_VER
 
 namespace qak { //=====================================================================================================|
+namespace imp_prng64_ {
+
+	//	http://nuclear.llnl.gov/CNP/rng/rngman.ps
+	//	Lawrence Livermore National Laboratory
+	//	Beck, Brooks, (2000) "The RNG Random Number Library"
+	//	"The period of this random number generator is 2^64. This generator is the same as the
+	//	default one-stream SPRNG and has been checked to insure that it satisfies the requirements
+	//	for maximal period [M. Mascagani 1999]."
+	constexpr std::uint64_t z_mult = 2862933555777941757UL;
+	constexpr std::uint64_t z_addn =          3037000493UL;
+	constexpr std::uint64_t advance(std::uint64_t z)
+	{
+		z *= z_mult;
+		z += z_addn;
+		return z;
+	}
+
+	//	This value of z will occur almost at the end of the default cycle. It's unlikely to be encountered
+	//	in the seeded cases, too.
+	//	We use this as a marker of an invalid moved-from object in the debug builds.
+	constexpr std::uint64_t unlikely_z = 0;
+
+	constexpr std::uint64_t default_z = advance(advance(unlikely_z));
+
+	//	These tweak values give us different starting points in the sequence for certain internal uses.
+	constexpr std::uint64_t tweak_seeder_seed   = advance(advance(default_z*37 + 44));
+	constexpr std::uint64_t tweak_integral_seed = advance(advance(default_z*71 + 18));
+
+} // namespace imp_prng64_
 
 	//=================================================================================================================|
 	//
@@ -47,55 +76,18 @@ namespace qak { //==============================================================
 	//
 	struct prng64
 	{
-	private:
-
-		//	http://nuclear.llnl.gov/CNP/rng/rngman.ps
-		//	Lawrence Livermore National Laboratory
-		//	Beck, Brooks, (2000) "The RNG Random Number Library"
-		//	"The period of this random number generator is 2^64. This generator is the same as the
-		//	default one-stream SPRNG and has been checked to insure that it satisfies the requirements
-		//	for maximal period [M. Mascagani 1999]."
-		static std::uint64_t const z_mult_ = 2862933555777941757UL;
-		static std::uint64_t const z_addn_ =          3037000493UL;
-
-#if !QAK_COMPILER_FAILS_CONSTEXPR // compiler supports constexpr
-		static std::uint64_t advance_(std::uint64_t z) constexpr
-		{
-			z *= z_mult_;
-			z += z_addn_;
-			return z;
-		}
-#else // workaround for compilers that don't support constexpr yet
-
-#	define advance_(z) (static_cast<std::uint64_t>(z)*z_mult_ + z_addn_)
-
-#endif // of workaround for compilers that don't support constexpr yet
-
-		//	This value of z_ will occurs almost at the end of the default cycle. It's unlikely to be encountered
-		//	in the seeded cases, too.
-		//	We use this as a marker of an invalid moved-from object in the debug builds.
-		static std::uint64_t const unlikely_z_ = 0;
-
-		static std::uint64_t const default_z_ = advance_(advance_(unlikely_z_));
-
-		//	These tweak values give us a different starting point in the sequence for certain internal uses.
-		static std::uint8_t const tweak_seeder_seed_ =   advance_(advance_(default_z_*37 + 44));
-		static std::uint8_t const tweak_integral_seed_ = advance_(advance_(default_z_*71 + 18));
-
-	public:
-
 		//	Construction by seeding from another prng64.
 		static prng64 seed_from(prng64 & seeder)
 		{
 			std::uint64_t seed = seeder.generate<std::uint64_t>();
 			prng64 p;
-			p.z_ = advance_(seed + tweak_seeder_seed_);
+			p.z_ = imp_prng64_::advance(seed + imp_prng64_::tweak_seeder_seed);
 			return p;
 		}
 
 		//	Default construction with static seed.
 		prng64() :
-			z_(default_z_)
+			z_(imp_prng64_::default_z)
 		{ }
 
 		//	Construction from an integral type seed.
@@ -106,9 +98,9 @@ namespace qak { //==============================================================
 					std::is_integral<seed_T>::value,
 				void>::type * = 0
 		) :
-			z_(default_z_)
+			z_(imp_prng64_::default_z)
 		{
-			z_ += tweak_integral_seed_;
+			z_ += imp_prng64_::tweak_integral_seed;
 			z_ <<= 8;
 
 			typedef typename std::make_unsigned<seed_T>::type val_type;
@@ -140,6 +132,7 @@ namespace qak { //==============================================================
 		prng64 & operator = (prng64 &&) = default;
 
 #else // workaround for compilers that don't support "= default" syntax
+#error "bad compiler"
 
 		//	Copy ctor.
 		prng64(prng64 const & that) : z_(that.z_) { }
@@ -196,9 +189,9 @@ private:
 		//	Advances the state and generates 32 new pseudorandom bits from the sequence.
 		std::uint32_t gen32_()
 		{
-			assert(unlikely_z_ != z_);
+			assert(imp_prng64_::unlikely_z != z_);
 
-			z_ = advance_(z_);
+			z_ = imp_prng64_::advance(z_);
 			return z_ >> 32;
 		}
 
@@ -267,13 +260,6 @@ private:
 		}};
 	};
 
-#if !QAK_COMPILER_FAILS_CONSTEXPR // compiler supports constexpr
-#else // workaround for compilers that don't support constexpr yet
-
-#	undef advance_
-
-#endif // of workaround for compilers that don't support constexpr yet
-
 	//-----------------------------------------------------------------------------------------------------------------|
 
 	//	An adpater for prng64 to meet the requirements of a standard uniform random number generator.
@@ -282,6 +268,9 @@ private:
 	struct std_urng
 	{
 		typedef T result_type;
+
+		static result_type min() { return std::numeric_limits<result_type>::min(); }
+		static result_type max() { return std::numeric_limits<result_type>::max(); }
 
 		std_urng(prng64 & rng) : rng_(rng) { }
 
@@ -305,9 +294,6 @@ private:
 #endif // of workaround for compilers that don't support "= default" syntax
 
 		result_type operator () () { return rng_.generate<result_type>(); }
-
-		result_type min() { return std::numeric_limits<result_type>::min(); }
-		result_type max() { return std::numeric_limits<result_type>::max(); }
 
 	private:
 

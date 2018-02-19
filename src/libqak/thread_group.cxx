@@ -31,6 +31,8 @@
 #include "qak/thread.hxx"
 #include "qak/vector.hxx"
 
+#include <cmath> // std::fabs
+
 using std::size_t;
 using std::int64_t;
 using std::uint64_t;
@@ -187,7 +189,7 @@ namespace qak { //==============================================================
 
 		throw_unless(0.0 <= d && d <= std::numeric_limits<std::size_t>::max());
 		std::size_t u = static_cast<std::size_t>(d);
-		throw_unless(abs(double(u) - d) <= 1.0);
+		throw_unless(std::fabs(double(u) - d) <= 1.0);
 
 		set_target_cnt_threads(u);
 	}

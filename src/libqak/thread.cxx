@@ -27,96 +27,115 @@
 #include "qak/host_info.hxx"
 #include "qak/fail.hxx"
 #include "qak/min_max.hxx"
-#include "qak/threadls.hxx"
+//#include "qak/threadls.hxx"
+#include "qak/imp/pthread.hxx"
 
 #include <cassert>
 #include <exception>
 
+#include <iostream>//?
+#include <sstream>//?
+#include <iomanip>//?
 //=====================================================================================================================|
 
-#if QAK_POSIX
+#if QAK_API_POSIX
 #	include <cstdlib> // std::malloc
 #	include <errno.h>
 #	include <sched.h> // sched_yield, sched_setaffinity
 #	include <unistd.h> // sysconf
 #	include <time.h> // clock_nanosleep
-#elif QAK_WIN32
+#elif QAK_API_WIN32
 #	include "../platforms/win32/win32_lite.hxx"
 #	include <process.h> // _beginthreadex
-#else // of elif QAK_WIN32
+#else // of elif QAK_API_WIN32
 #	error "port me"
 #endif
 
 #if QAK_THREAD_PTHREAD
 
 #	include <errno.h> // pthread error codes
-#	include <pthread.h>
 
 	//	It's possible this is not valid on some system, but it seems to work.
-	static_assert(sizeof(pthread_t) <= sizeof(qak::thread_id), "port me");
+	static_assert(sizeof(pthread_t) <= sizeof(qak::thread_id_t), "port me");
 
-#elif QAK_WIN32
+#elif QAK_API_WIN32
 
-	static_assert(sizeof(win32::DWORD) <= sizeof(qak::thread::id_type), "qak::thread_id too small to represent Win32 thread id");
+	static_assert(sizeof(win32::DWORD) <= sizeof(qak::thread_id_t), "qak::thread_id too small to represent Win32 thread id");
 
 #endif
 
 namespace qak { //=====================================================================================================|
 
-	//-----------------------------------------------------------------------------------------------------------------|
+	struct thread_imp;
 
-	//	The one true threadls_key for our current open thread handles.
-	//? TODO get atomic<rptr> working.
-	static qak::atomic<threadls_key *> s_p_threadls_key;
+#if QAK_THREAD_PTHREAD
 
-	//	Gets or creates the one true threadls_key for our current open thread handles.
-	static rptr<threadls_key> get_s_rp_threadls_key()
-	{
-		rptr<threadls_key> rp(s_p_threadls_key.load());
+	typedef pthread_t thread_handle_t;
+	const thread_handle_t invalid_thread_handle_value = invalid_thread_id_value; // defined in imp/pthread.hxx
 
-		if (!rp)
-		{
-			rp = create_threadls_key();
+#elif QAK_API_WIN32
 
-			threadls_key * expected = 0;
-			if (s_p_threadls_key.compare_exchange_strong(expected, rp.get()))
-			{
-				//	We set s_p_threadls_key.
+	typedef win32::HANDLE thread_handle_t;
+	const qak::thread_id_t invalid_thread_id_value = 0;
+	const thread_handle_t invalid_thread_handle_value = 0;
 
-				//	Temporarily leak a refcnt for the global atomic variable.
-				//? BUG This could become a permanent leak if we're a DLL that gets unloaded.
-				rp.unsafe__inc_refcnt();
-			}
-			else
-			{
-				//	Someone else must have set s_p_threadls_key for us
-				rp.reset(s_p_threadls_key.load());
-			}
-		}
-
-		throw_unless(rp);
-		return rp;
-	}
+#endif // of QAK_API_WIN32
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
-	optional<std::uintptr_t> thread::join() const
+
+//-	//	The one true threadls_key for our current open thread handles.
+//-	//? TODO get atomic<rptr> working.
+//-	static qak::atomic<threadls_key *> s_p_threadls_key;
+//-
+//-	//	Gets or creates the one true threadls_key for our current open thread handles.
+//-	static rptr<threadls_key> get_s_rp_threadls_key()
+//-	{
+//-		rptr<threadls_key> rp(s_p_threadls_key.load());
+//-
+//-		if (!rp)
+//-		{
+//-			rp = create_threadls_key();
+//-
+//-			threadls_key * expected = 0;
+//-			if (s_p_threadls_key.compare_exchange_strong(expected, rp.get()))
+//-			{
+//-				//	We set s_p_threadls_key.
+//-
+//-				//	Temporarily leak a refcnt for the global atomic variable.
+//-				//? BUG This could become a permanent leak if we're a DLL that gets unloaded.
+//-				rp.unsafe__inc_refcnt();
+//-			}
+//-			else
+//-			{
+//-				//	Someone else must have set s_p_threadls_key for us
+//-				rp.reset(s_p_threadls_key.load());
+//-			}
+//-		}
+//-
+//-		fail_unless(rp);
+//-		return rp;
+//-	}
+
+	//-----------------------------------------------------------------------------------------------------------------|
+
+	qak::optional<std::uintptr_t> thread::join() const
 	{
-		optional<std::int64_t> opt_timeout_ns;
-		optional<optional<std::uintptr_t>> opt_opt_rv = this->join_timeout_v(opt_timeout_ns);
+		qak::optional<std::int64_t> opt_timeout_ns;
+		qak::optional<qak::optional<std::uintptr_t>> opt_opt_rv = this->join_timeout_v(opt_timeout_ns);
 
 		//	This could happen if the caller were trying to join himself.
-		throw_unless(opt_opt_rv);
+		fail_unless(opt_opt_rv);
 
 		return *opt_opt_rv;
 	}
 
-	optional<optional<std::uintptr_t>> thread::timed_join_ns(std::int64_t timeout_ns) const
+	qak::optional<qak::optional<std::uintptr_t>> thread::timed_join_ns(std::int64_t timeout_ns) const
 	{
-		return join_timeout_v(optional<std::int64_t>(timeout_ns));
+		return join_timeout_v(qak::optional<std::int64_t>(timeout_ns));
 	}
 
-	optional<optional<std::uintptr_t>> thread::finished() const
+	qak::optional<qak::optional<std::uintptr_t>> thread::finished() const
 	{
 		return join_timeout_v(0);
 	}
@@ -134,52 +153,40 @@ namespace qak { //==============================================================
 		std::function<std::uintptr_t()> * p_thread_fn_ui;
 		std::function<void()> * p_thread_fn_void;
 
-#if QAK_THREAD_PTHREAD
-#elif QAK_WIN32
-
 		enum exit_method_en
 		{
 			not_known_to_have_exited,
 			exited_normally,
 			exited_via_exception
 		};
-		qak::atomic<win32::HANDLE> ahth;
 
 		qak::atomic<uintptr_t> exit_code;
 		qak::atomic<unsigned> exit_method;
-
-#endif
+		qak::atomic<thread_handle_t> ahth;
 
 		thread_imp() :
 			started_by_start_routine(true),
 			p_thread_fn_ui(0),
-			p_thread_fn_void(0)
-#if QAK_THREAD_PTHREAD
-#elif QAK_WIN32
-			, ahth(0)
-			, exit_method(not_known_to_have_exited)
-#endif
+			p_thread_fn_void(0),
+			ahth(invalid_thread_handle_value),
+			exit_method(not_known_to_have_exited)
 		{ }
 
-#if QAK_THREAD_PTHREAD
-#elif QAK_WIN32
-		explicit thread_imp(win32::HANDLE h) :
+		explicit thread_imp(thread_handle_t th_h) :
 			started_by_start_routine(false),
 			p_thread_fn_ui(0),
 			p_thread_fn_void(0),
-			ahth(h),
+			ahth(th_h),
 			exit_method(not_known_to_have_exited)
 		{ }
-#endif
 
 		~thread_imp()
 		{
 			delete p_thread_fn_ui;   p_thread_fn_ui = 0;
 			delete p_thread_fn_void; p_thread_fn_void = 0;
 
-#if QAK_THREAD_PTHREAD
-#elif QAK_WIN32
-			if (ahth)
+#if QAK_API_WIN32
+			if (invalid_thread_handle_value != ahth)
 			{
 				win32::BOOL success;
 				success = win32::CloseHandle(ahth);
@@ -191,16 +198,14 @@ namespace qak { //==============================================================
 
 		void start();
 
-#if QAK_THREAD_PTHREAD
-#elif QAK_WIN32
-
-		void try_assign_ahth(win32::HANDLE h);
+		void try_assign_ahth(thread_handle_t h);
 		unsigned start_routine();
 
-#endif
-
-		virtual optional<optional<std::uintptr_t>> join_timeout_v(optional<std::int64_t> opt_timeout_ns) const;
+		virtual qak::optional<qak::optional<std::uintptr_t>> join_timeout_v(qak::optional<std::int64_t> opt_timeout_ns) const;
 	};
+
+	// Rptr to the thread_imp of the current thread, if any.
+	thread_local static thread_imp::RP s_threadlocal_thread_imp_rp;
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
@@ -233,99 +238,161 @@ namespace qak { //==============================================================
 	//-----------------------------------------------------------------------------------------------------------------|
 
 #if QAK_THREAD_PTHREAD
-#elif QAK_WIN32
+
+	extern "C" void * thread_start_routine(void * pv)
+	{
+		return reinterpret_cast<void *>(static_cast<thread_imp *>(pv)->start_routine());
+	}
+
+#elif QAK_API_WIN32
+
 	extern "C" unsigned __stdcall thread_start_routine(void * pv)
 	{
 		return static_cast<thread_imp *>(pv)->start_routine();
 	}
-#endif // of QAK_WIN32
+
+#endif // of QAK_API_WIN32
 
 	//-----------------------------------------------------------------------------------------------------------------|
+
+#if QAK_THREAD_PTHREAD
+	struct ptattr
+	{
+		ptattr()
+		{
+			int err = ::pthread_attr_init(&attr);
+			if (err)
+			{
+				char const * psz = "Unknown pthread_attr_init failure.";
+				switch (err)
+				{				// Error code definitions from The Open Group - Single UNIX Specification, Version 2
+				case ENOMEM:
+					psz = "Insufficient memory to initialize a pthread_attr_t.";
+					break;
+				}
+				assert(!psz);
+				qak::fail();
+			}
+		}
+
+		~ptattr()
+		{
+			try
+			{
+				int err = ::pthread_attr_destroy(&attr);
+				if (err)
+				{
+					char const * psz = "Unknown pthread_attr_init failure.";
+					assert(!psz);
+					qak::fail();
+				}
+			}
+			catch (std::runtime_error &) { }
+		}
+
+		pthread_attr_t * get_ptr() { return &attr; }
+
+		pthread_attr_t attr;
+
+		ptattr(ptattr const &) = delete;
+		ptattr(ptattr &&) = delete;
+		ptattr & operator = (ptattr const &) = delete;
+		ptattr & operator = (ptattr &&) = delete;
+	};
+#endif // of if QAK_THREAD_PTHREAD
 
 	void thread_imp::start()
 	{
 		thread::RP rp_this(this);
 
-#if QAK_THREAD_PTHREAD
-
-		pthread_t pth;
-		int err = ::pthread_create(
-			&pth,                 // pthread_t * restrict thread
-			0,                    // const pthread_attr_t * restrict attr
-			thread_start_routine, // void * (*start_routine)(void *)
-			p_td );               // void * restrict arg
-		if (err)
-		{
-			delete p_td; p_td = 0;
-			if (err)
-			{
-				//char const * psz = 0;
-				//switch (err)
-				//{				Error code definitions from The Open Group - Single UNIX® Specification, Version 2
-				//case EAGAIN:
-				//	psz = "The system lacked the necessary resources to create another thread, or the system-imposed "
-				//		"limit on the total number of threads in a process {PTHREAD_THREADS_MAX} would be exceeded.";
-				//	break;
-				//case EPERM:
-				//	psz = "The caller does not have appropriate permission to set the required scheduling parameters "
-				//		"or scheduling policy.";
-				//	break;
-				//case EINVAL:
-				//	psz = "The attributes specified by attr are invalid.";
-				//	break;
-				//}
-				throw 0;
-			}
-		}
-
-		thread_id tid = static_cast<thread_id>(pth);
-
-#elif QAK_WIN32
-
 		//	Manually bump the refcnt on the thread_imp object. The thread (if started) will reduce it.
 		rp_this.unsafe__inc_refcnt();
 
+		thread_handle_t th_h = invalid_thread_handle_value;
+
+#if QAK_THREAD_PTHREAD
+
+		ptattr attr;
+		int err = ::pthread_create(
+			&th_h,                // pthread_t * restrict thread
+			attr.get_ptr(),       // const pthread_attr_t * restrict attr
+			thread_start_routine, // void * (*start_routine)(void *)
+			this );               // void * restrict arg
+		if (err || invalid_thread_handle_value == th_h)
+		{
+			//	Thread failed to start
+			rp_this.unsafe__dec_refcnt();
+
+			//char const * psz = 0;
+			//switch (err)
+			//{				Error code definitions from The Open Group - Single UNIX® Specification, Version 2
+			//case EAGAIN:
+			//	psz = "The system lacked the necessary resources to create another thread, or the system-imposed "
+			//		"limit on the total number of threads in a process {PTHREAD_THREADS_MAX} would be exceeded.";
+			//	break;
+			//case EPERM:
+			//	psz = "The caller does not have appropriate permission to set the required scheduling parameters "
+			//		"or scheduling policy.";
+			//	break;
+			//case EINVAL:
+			//	psz = "The attributes specified by attr are invalid.";
+			//	break;
+			//}
+
+			qak::fail();
+		}
+
+		//?thread_id tid = static_cast<thread_id>(pth);
+
+#elif QAK_API_WIN32
+
 		// MSDN: "_beginthreadex returns 0 on an error, in which case errno and _doserrno are set"
 		unsigned threadId = 0;
-		win32::HANDLE hThread = static_cast<win32::HANDLE>(_beginthreadex(
+		th_h = static_cast<thread_handle_t>(_beginthreadex(
 			0,            // void *security
 			0,            // unsigned stack_size
 			thread_start_routine, // unsigned ( __stdcall *start_address )( void * )
 			this,         // void *arglist
 			0,            // unsigned initflag
 			&threadId )); // unsigned *threadId
-		if (!hThread)
+		if (invalid_thread_handle_value == th_h)
 		{
 			//	Thread failed to start
 			rp_this.unsafe__dec_refcnt();
-			throw 0;
-		}
-		else // Thread was started as planned, but we don't know if it's running yet.
-		{
-			//	Try to use our already-open handle to the thread. This will close hThread if it's not needed.
-			try_assign_ahth(hThread);
+
+			qak::fail();
 		}
 
-#else // of elif QAK_WIN32
+#else // of elif QAK_API_WIN32
 #	error ""
 #endif
+
+		// Thread was started as planned, but we don't know if it's running yet.
+
+		//	Try to use our already-open handle to the thread. This will close th_h if it's not needed.
+		try_assign_ahth(th_h);
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
 	// virtual
-	optional<optional<std::uintptr_t>> thread_imp::join_timeout_v(optional<std::int64_t> opt_timeout_ns) const
+	qak::optional<qak::optional<std::uintptr_t>> thread_imp::join_timeout_v(qak::optional<std::int64_t> opt_timeout_ns) const
 	{
-		optional<optional<std::uintptr_t>> rv;
+		qak::optional<qak::optional<std::uintptr_t>> rv;
 
 #if QAK_THREAD_PTHREAD
-#elif QAK_WIN32
+
+		// Pthreads has no join timeout. :-P
+		// So probably we need to arrange for the thread to hold a lock on a mutex on which we can wait.
+		qak::fail_todo(); // port me
+
+#elif QAK_API_WIN32
 
 		if (not_known_to_have_exited == exit_method)
 		{
 			assert(ahth);
 
-			//	If the calling thread is trying to join itself, don't wait around for the termination.
+			// If the calling thread is trying to join itself, don't wait around for the termination.
 			if (win32::GetCurrentThreadId() == win32::GetThreadId(ahth))
 				opt_timeout_ns = 0;
 
@@ -360,7 +427,7 @@ namespace qak { //==============================================================
 						//	Retrieve the exit code from the OS.
 						win32::DWORD dwExitCode = 0;
 						win32::BOOL success = win32::GetExitCodeThread(ahth, &dwExitCode);
-						throw_unless(success);
+						fail_unless(success);
 						const_cast<thread_imp *>(this)->exit_code = dwExitCode;
 						const_cast<thread_imp *>(this)->exit_method = exited_normally;
 					}
@@ -369,7 +436,7 @@ namespace qak { //==============================================================
 					ms_remain -= ms;
 					break;
 				default:
-					throw 0;
+					qak::fail();
 					break;
 				}
 			}
@@ -381,65 +448,70 @@ namespace qak { //==============================================================
 			assert(!rv);
 			break;
 		case exited_normally:
-			rv.assign(optional<uintptr_t>(exit_code));
+			rv = qak::optional<uintptr_t>(exit_code);
 			break;
 		case exited_via_exception:
-			rv.assign(optional<uintptr_t>());
+			rv = qak::optional<uintptr_t>();
 			break;
 		}
 #endif
 		return rv;
 	}
 
-#if QAK_THREAD_PTHREAD
-
-	extern "C" void * thread_start_routine(void * pv)
+	//	Assigns th_h to ahth iff it holds the invalid handle value. Otherwise, closes th_h.
+	void thread_imp::try_assign_ahth(thread_handle_t th_h)
 	{
-		try
-		{
-			thread_start_data * p_td = static_cast<thread_start_data *>(pv);
-			thread_start_data td = std::move(*p_td);
-			delete p_td; p_td = 0;
+//?this_thread::sleep_ms(1 + 179433747*static_cast<std::uint64_t>(this_thread::get_id())%157);
+//std::ostringstream oss; oss << std::hex << std::setfill('0')
+////<< std::setw(8) << this_thread::get_id() << " invalid_thread_handle_value=0x" << std::setw(8) << invalid_thread_handle_value << ")\n"
+//<< std::setw(8) << this_thread::get_id() << "   try_assign_ahth(0x" << std::setw(8) << th_h << ")\n"
+//<< std::setw(8) << this_thread::get_id() << "         when ahth=0x" << std::setw(8) << ahth << "\n";
+//std::cerr << oss.str(); std::ostringstream().swap(oss);
 
-			td.thread_fn();
-		}
-		catch (...)
-		{
-			assert(0);
-			std::terminate();
-		}
+		assert(invalid_thread_handle_value != th_h);
 
-		return 0;
-	}
-
-#elif QAK_WIN32
-
-	//	Assigns hThread to ahth iff it's 0. Otherwise, closes hThread.
-	void thread_imp::try_assign_ahth(win32::HANDLE hThread)
-	{
-		assert(hThread);
-
-		win32::HANDLE prev_handle_value = ahth;
+#if 1
+		thread_handle_t prev_handle_value = invalid_thread_handle_value;
+		bool assigned = ahth.compare_exchange_strong(prev_handle_value, th_h);
+#else
+		thread_handle_t prev_handle_value = ahth;
 
 		bool assigned = false;
 		if (!prev_handle_value)
-			assigned = ahth.compare_exchange_strong(prev_handle_value, hThread);
+			assigned = ahth.compare_exchange_strong(prev_handle_value, th_h);
+#endif
 
 		if (assigned)
 		{
-			assert(ahth == hThread);
+//?oss << std::hex << std::setfill('0')
+//<< std::setw(8) << this_thread::get_id() << "     assigned ahth=0x" << std::setw(8) << ahth << "\n";
+//std::cerr << oss.str(); std::ostringstream().swap(oss);
+			assert(invalid_thread_handle_value == prev_handle_value);
+			assert(ahth == th_h);
 		}
 		else
 		{
-			assert(ahth);
+//?oss << std::hex << std::setfill('0')
+//<< std::setw(8) << this_thread::get_id() << " not assigned ahth=0x" << std::setw(8) << ahth << "\n";
+//std::cerr << oss.str(); std::ostringstream().swap(oss);
+			assert(invalid_thread_handle_value != prev_handle_value);
+			assert(invalid_thread_handle_value != ahth);
+
+#if QAK_API_WIN32
 
 			//	Close our redundant handle.
 			win32::BOOL success;
-			success = win32::CloseHandle(hThread);
+			success = win32::CloseHandle(th_h);
 			assert(success);
+
+#endif // of QAK_API_WIN32
 		}
+
+//?oss << std::hex << std::setfill('0')
+//<< std::setw(8) << this_thread::get_id() << "     returning\n";
+//std::cerr << oss.str(); std::ostringstream().swap(oss);
 	}
-	
+
 	unsigned thread_imp::start_routine()
 	{
 		try
@@ -450,19 +522,30 @@ namespace qak { //==============================================================
 			rp_thread.unsafe__dec_refcnt();
 
 			//	Ensure the thread handle gets filled.
-			if (!ahth)
+			if (invalid_thread_handle_value == ahth)
 			{
-				win32::HANDLE h = win32::OpenThread(
+				thread_handle_t th_h = invalid_thread_handle_value;
+
+#if QAK_THREAD_PTHREAD
+
+				th_h = ::pthread_self(); // always succeeeds
+
+#elif QAK_API_WIN32
+
+				th_h = win32::OpenThread(
 					win32::THREAD_ALL_ACCESS_winxp, // win32::DWORD desiredAccess
 					false,                          // win32::BOOL inheritHandle
 					win32::GetCurrentThreadId() );  // win32::DWORD threadId
-				throw_unless(h);
 
-				try_assign_ahth(h);
+#endif // of QAK_API_WIN32
+
+				fail_unless(invalid_thread_handle_value != th_h);
+
+				try_assign_ahth(th_h);
 			}
 
-			//	Make our thread handle is accessible via thread local storage.
-			get_s_rp_threadls_key()->set_value_for_this_thread(static_cast<threadls_key::value_type>(this));
+			//	Make our thread handle accessible via thread local storage.
+			s_threadlocal_thread_imp_rp = rp_thread;
 
 			//	Call the appropriate user-supplied thread fn.
 			if (p_thread_fn_ui)
@@ -503,8 +586,8 @@ namespace qak { //==============================================================
 				}
 			}
 
-			//	Clean our handle from the thread local storage key.
-			get_s_rp_threadls_key()->set_value_for_this_thread(0);
+			//	Remove our handle from the thread local storage key.
+			s_threadlocal_thread_imp_rp.reset();
 
 			//	rp_thread dtor runs.
 		}
@@ -517,95 +600,79 @@ namespace qak { //==============================================================
 		assert(not_known_to_have_exited != this->exit_method);
 
 		unsigned rv = static_cast<unsigned>(this->exit_code);
-		if (exited_via_exception == this->exit_method || this->exit_code && !rv)
+		if (exited_via_exception == this->exit_method || (this->exit_code && !rv))
 			rv = unsigned(-1);
 
 		return rv;
 	}
 
-#else // of elif QAK_WIN32
-#	error ""
-#endif
-
 	//-----------------------------------------------------------------------------------------------------------------|
 
 	thread::RP this_thread::get()
 	{
-		thread::RP rp;
+		thread::RP rp = s_threadlocal_thread_imp_rp;
+
+		if (!rp)
+		{
+			//	There's not already a thread_imp object for this thread. Create one and store it in the
+			//	thread_local storage.
+
+			thread_handle_t th_h = invalid_thread_handle_value;
 
 #if QAK_THREAD_PTHREAD
-#	error "port me"
-#elif QAK_WIN32
 
-		thread_imp * p_imp_this_thread = reinterpret_cast<thread_imp *>(
-				get_s_rp_threadls_key()->get_value_for_this_thread() );
-		if (p_imp_this_thread)
-		{
-			//	Yay, great, we have a thread object.
-			rp.reset(p_imp_this_thread);
-		}
-		else
-		{
-			//	Boo, we don't have a thread object. 
+			th_h = ::pthread_self();
 
-			//	Create one and return it. Don't store it in thread local storage, because we currently have no
-			//	way of ever deleting it.
+#elif QAK_API_WIN32
 
-			win32::HANDLE h = win32::OpenThread(
+			th_h = win32::OpenThread(
 				win32::THREAD_ALL_ACCESS_winxp, // win32::DWORD desiredAccess
 				false,                          // win32::BOOL inheritHandle
 				win32::GetCurrentThreadId() );  // win32::DWORD threadId
-			throw_unless(h);
 
-			rp.reset(new thread_imp(h));
+#endif // of QAK_API_WIN32
+
+			fail_unless(invalid_thread_handle_value != th_h);
+
+			rp.reset(new thread_imp(th_h));
 		}
-
-#else // of QAK_WIN32
-#	error "port me"
-#endif
 
 		return rp;
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
-	thread::id_type thread::get_id() const
+	thread_id_t thread::get_id() const
 	{
-#if QAK_THREAD_PTHREAD
-#	error "port me"
-#elif QAK_WIN32
-
 		thread_imp const * imp_this = static_cast<thread_imp const *>(this);
 
-		thread::id_type tid = static_cast<id_type>(win32::GetThreadId(imp_this->ahth));
-
-#else // of elif QAK_WIN32
-#	error ""
+		thread_id_t tid = static_cast<thread_id_t>(
+#if QAK_THREAD_PTHREAD
+		                                          imp_this->ahth
+#elif QAK_API_WIN32
+		                                          win32::GetThreadId(imp_this->ahth)
 #endif
+		                                                                             );
 
-		assert(tid);
+		fail_unless(invalid_thread_id_value != tid);
+
 		return tid;
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
-	thread::id_type this_thread::get_id() QAK_noexcept
+	thread_id_t this_thread::get_id() QAK_noexcept
 	{
+		thread_id_t tid = static_cast<thread_id_t>(
 #if QAK_THREAD_PTHREAD
-
-		pthread_t pth = ::pthread_self();
-
-		thread_id tid = static_cast<thread_id>(pth);
-
-#elif QAK_WIN32
-
-		thread::id_type tid = static_cast<thread::id_type>(win32::GetCurrentThreadId());
-
-#else // of elif QAK_WIN32
-#	error ""
+		                                          ::pthread_self()
+#elif QAK_API_WIN32
+		                                          win32::GetCurrentThreadId()
 #endif
+		                                                                      );
 
-		assert(tid);
+		fail_unless(invalid_thread_id_value != tid);
+
 		return tid;
 	}
 
@@ -627,16 +694,16 @@ namespace qak { //==============================================================
 
 	void this_thread::yield() QAK_noexcept
 	{
-#if QAK_POSIX
+#if QAK_API_POSIX
 
 		//	In theory, this can return an error. I'm guessing we can safely ignore it.
 		(void)::sched_yield();
 
-#elif QAK_WIN32
+#elif QAK_API_WIN32
 
 		(void)win32::SwitchToThread();
 
-#else // of elif QAK_WIN32
+#else // of elif QAK_API_WIN32
 #	error "port me"
 #endif
 	}
@@ -661,7 +728,7 @@ namespace qak { //==============================================================
 	{
 		if (0 < ns)
 		{
-#if QAK_POSIX
+#if QAK_API_POSIX
 
 			std::int64_t s = ns/(1000*1000*1000);
 			ns -= s*(1000*1000*1000);
@@ -685,11 +752,12 @@ namespace qak { //==============================================================
 					remaining = { 0 };
 					continue;
 				default:
-					throw 0;
+					qak::fail();
+					break;
 				}
 			}
 
-#elif QAK_WIN32
+#elif QAK_API_WIN32
 
 			std::int64_t ms_remain = max<int64_t>(0, ns/1000/1000);
 			if (ms_remain*1000*1000 < ns)
@@ -704,7 +772,7 @@ namespace qak { //==============================================================
 			}
 			while (ms_remain);
 
-#else // of elif QAK_WIN32
+#else // of elif QAK_API_WIN32
 #	error "port me"
 #endif
 		}
@@ -722,7 +790,7 @@ namespace qak { //==============================================================
 		thread_imp const * imp_this = static_cast<thread_imp const *>(this);
 
 		unsigned cnt_avail = host_info::cnt_cpus_available();
-		if (!cnt_avail) throw 0;
+		qak::fail_unless(cnt_avail);
 
 		cpu_ix %= cnt_avail;
 
@@ -730,7 +798,7 @@ namespace qak { //==============================================================
 
 		size_t sz = CPU_ALLOC_SIZE(cnt_avail);
 		cpu_set_t * p_cpuset = reinterpret_cast<cpu_set_t *>(std::malloc(sz)); //? unique_ptr?
-		if (!p_cpuset) throw 0;
+		qak::fail_unless(p_cpuset);
 
 		CPU_ZERO_S(sz, p_cpuset);
 
@@ -747,12 +815,12 @@ namespace qak { //==============================================================
 
 		assert(!err); //? better error checking?
 
-#elif QAK_WIN32
+#elif QAK_API_WIN32
 
 		win32::DWORD_PTR processMask = 0;
 		win32::DWORD_PTR systemMask = 0;
 		win32::BOOL success = win32::GetProcessAffinityMask(win32::GetCurrentProcess(), &processMask, &systemMask);
-		throw_unless(success && (systemMask & processMask) != 0);
+		fail_unless(success && (systemMask & processMask) != 0);
 
 		win32::DWORD_PTR const availMask = processMask & systemMask;
 		win32::DWORD_PTR threadMask = 1;
@@ -769,12 +837,12 @@ namespace qak { //==============================================================
 			threadMask <<= 1;
 		}
 
-		throw_unless((systemMask & processMask & threadMask) != 0);
+		fail_unless((systemMask & processMask & threadMask) != 0);
 
 		win32::DWORD_PTR rv = win32::SetThreadAffinityMask(imp_this->ahth, threadMask);
-		throw_unless(rv != 0);
+		fail_unless(rv != 0);
 
-#else // of elif QAK_WIN32
+#else // of elif QAK_API_WIN32
 #	error "port me"
 #endif
 	}
@@ -805,11 +873,11 @@ namespace qak { //==============================================================
 //?		case 0:
 //?			return;
 //?		}
-//?		throw 0;
+//?		qak::fail();
 //?
-//?#elif QAK_WIN32
+//?#elif QAK_API_WIN32
 //?		tid;//?
-//?#else // of elif QAK_WIN32
+//?#else // of elif QAK_API_WIN32
 //?#	error "port me"
 //?#endif
 //?	}

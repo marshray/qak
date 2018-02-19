@@ -32,8 +32,8 @@
 
 #elif QAK_CXX_LIB_IS_GNU_LIBSTDCXX && 20120313 <= __GLIBCXX__
 
-//#	pragma message("using IMPL_CSTDATOMIC because QAK_CXX_LIB_IS_GLIBCXX && 20120313 <= __GLIBCXX__")
-#	define IMPL_CSTDATOMIC 1   // use <cstdatomic> to implement
+//#	pragma message("using IMPL_STDATOMIC because QAK_CXX_LIB_IS_GLIBCXX && 20120313 <= __GLIBCXX__")
+#	define IMPL_STDATOMIC 1   // use <cstdatomic> to implement
 
 #elif QAK_GNUC
 
@@ -59,7 +59,7 @@
 
 //	Sample implementation switch.
 #if IMPL_STD_ATOMIC
-#elif IMPL_CSTDATOMIC
+#elif IMPL_STDATOMIC
 #elif IMPL_ALIGNED_PTRS_ARE_ASSUMED_ATOMIC
 #	if QAK_HAS_GNUC_MEM_FULL_BARRIER
 #	endif
@@ -77,9 +77,9 @@
 
 	static_assert(std::alignment_of<std::atomic<char>>::value <= QAK_MINIMUM_ATOMIC_ALIGNMENT, "");
 
-#elif IMPL_CSTDATOMIC
+#elif IMPL_STDATOMIC
 
-#	include <cstdatomic>
+#	include <atomic>
 #	include <new> // default placement new (Wikipedia says we shouldn't have to include this)
 
 	// looks a lot like <atomic> actually
@@ -109,7 +109,7 @@ namespace qak { namespace atomic_imp_ns_ { //===================================
 	//-----------------------------------------------------------------------------------------------------------------|
 
 	//	Convert qak::memory_order to std::memory_order.
-	QAK_MAYBE_constexpr std::memory_order to_std_mo(qak::memory_order tmo)
+	constexpr std::memory_order to_std_mo(qak::memory_order tmo)
 	{
 		//	Assert that the C-style cast we're about to perform is valid.
 		//
@@ -123,7 +123,7 @@ namespace qak { namespace atomic_imp_ns_ { //===================================
 		return std::memory_order(int(tmo));
 	}
 
-#elif IMPL_CSTDATOMIC
+#elif IMPL_STDATOMIC
 #elif IMPL_ALIGNED_PTRS_ARE_ASSUMED_ATOMIC
 #else
 #	error ""
@@ -149,7 +149,7 @@ namespace qak { namespace atomic_imp_ns_ { //===================================
 		//	Construct a std::atomic as our repr.
 		new ((void *) &repr_) std_atomic_type(val);
 	}
-#elif IMPL_CSTDATOMIC
+#elif IMPL_STDATOMIC
 #	error ""
 #elif IMPL_ALIGNED_PTRS_ARE_ASSUMED_ATOMIC
 #	error ""
@@ -170,7 +170,7 @@ namespace qak { namespace atomic_imp_ns_ { //===================================
 		//	Destruct std::atomic.
 		P_STDATOMIC->~std_atomic_type();
 
-#elif IMPL_CSTDATOMIC
+#elif IMPL_STDATOMIC
 #elif IMPL_ALIGNED_PTRS_ARE_ASSUMED_ATOMIC
 #else
 #	error ""
@@ -186,7 +186,7 @@ namespace qak { namespace atomic_imp_ns_ { //===================================
 
 		return PC_STDATOMIC->load(to_std_mo(mo));
 
-#elif IMPL_CSTDATOMIC
+#elif IMPL_STDATOMIC
 #elif IMPL_ALIGNED_PTRS_ARE_ASSUMED_ATOMIC
 
 #	if QAK_HAS_GNUC_MEM_FULL_BARRIER
@@ -208,7 +208,7 @@ namespace qak { namespace atomic_imp_ns_ { //===================================
 
 		P_STDATOMIC->store(val, to_std_mo(mo));
 
-#elif IMPL_CSTDATOMIC
+#elif IMPL_STDATOMIC
 #elif IMPL_ALIGNED_PTRS_ARE_ASSUMED_ATOMIC
 
 		repr_ = val;
@@ -231,9 +231,10 @@ namespace qak { namespace atomic_imp_ns_ { //===================================
 
 		return ++REF_STDATOMIC;
 
-#elif IMPL_CSTDATOMIC
+#elif IMPL_STDATOMIC
 #elif IMPL_ALIGNED_PTRS_ARE_ASSUMED_ATOMIC
 #	if IMPL_HAVE_MEM_FULL_BARRIER
+#		error ""
 #	endif
 #else
 #	error ""
@@ -249,9 +250,10 @@ namespace qak { namespace atomic_imp_ns_ { //===================================
 
 		return --REF_STDATOMIC;
 
-#elif IMPL_CSTDATOMIC
+#elif IMPL_STDATOMIC
 #elif IMPL_ALIGNED_PTRS_ARE_ASSUMED_ATOMIC
 #	if IMPL_HAVE_MEM_FULL_BARRIER
+#		error ""
 #	endif
 #else
 #	error ""
@@ -267,9 +269,10 @@ namespace qak { namespace atomic_imp_ns_ { //===================================
 
 		return REF_STDATOMIC++;
 
-#elif IMPL_CSTDATOMIC
+#elif IMPL_STDATOMIC
 #elif IMPL_ALIGNED_PTRS_ARE_ASSUMED_ATOMIC
 #	if IMPL_HAVE_MEM_FULL_BARRIER
+#		error ""
 #	endif
 #else
 #	error ""
@@ -285,9 +288,10 @@ namespace qak { namespace atomic_imp_ns_ { //===================================
 
 		return REF_STDATOMIC--;
 
-#elif IMPL_CSTDATOMIC
+#elif IMPL_STDATOMIC
 #elif IMPL_ALIGNED_PTRS_ARE_ASSUMED_ATOMIC
 #	if IMPL_HAVE_MEM_FULL_BARRIER
+#		error ""
 #	endif
 #else
 #	error ""
@@ -303,9 +307,10 @@ namespace qak { namespace atomic_imp_ns_ { //===================================
 
 		return REF_STDATOMIC.exchange(val, to_std_mo(mo));
 
-#elif IMPL_CSTDATOMIC
+#elif IMPL_STDATOMIC
 #elif IMPL_ALIGNED_PTRS_ARE_ASSUMED_ATOMIC
 #	if IMPL_HAVE_MEM_FULL_BARRIER
+#		error ""
 #	endif
 #else
 #	error ""
@@ -321,9 +326,10 @@ namespace qak { namespace atomic_imp_ns_ { //===================================
 
 		return REF_STDATOMIC.compare_exchange_weak(exp, des, to_std_mo(mo));
 
-#elif IMPL_CSTDATOMIC
+#elif IMPL_STDATOMIC
 #elif IMPL_ALIGNED_PTRS_ARE_ASSUMED_ATOMIC
 #	if IMPL_HAVE_MEM_FULL_BARRIER
+#		error ""
 #	endif
 #else
 #	error ""
@@ -339,9 +345,10 @@ namespace qak { namespace atomic_imp_ns_ { //===================================
 
 		return REF_STDATOMIC.compare_exchange_weak(exp, des, to_std_mo(moS), to_std_mo(moF));
 
-#elif IMPL_CSTDATOMIC
+#elif IMPL_STDATOMIC
 #elif IMPL_ALIGNED_PTRS_ARE_ASSUMED_ATOMIC
 #	if IMPL_HAVE_MEM_FULL_BARRIER
+#		error ""
 #	endif
 #else
 #	error ""
@@ -357,9 +364,10 @@ namespace qak { namespace atomic_imp_ns_ { //===================================
 
 		return REF_STDATOMIC.compare_exchange_strong(exp, des, to_std_mo(mo));
 
-#elif IMPL_CSTDATOMIC
+#elif IMPL_STDATOMIC
 #elif IMPL_ALIGNED_PTRS_ARE_ASSUMED_ATOMIC
 #	if IMPL_HAVE_MEM_FULL_BARRIER
+#		error ""
 #	endif
 #else
 #	error ""
@@ -375,9 +383,10 @@ namespace qak { namespace atomic_imp_ns_ { //===================================
 
 		return REF_STDATOMIC.compare_exchange_strong(exp, des, to_std_mo(moS), to_std_mo(moF));
 
-#elif IMPL_CSTDATOMIC
+#elif IMPL_STDATOMIC
 #elif IMPL_ALIGNED_PTRS_ARE_ASSUMED_ATOMIC
 #	if IMPL_HAVE_MEM_FULL_BARRIER
+#		error ""
 #	endif
 #else
 #	error ""
@@ -414,9 +423,10 @@ namespace qak { namespace atomic_imp_ns_ { //===================================
 
 		std::atomic_thread_fence(atomic_imp_ns_::to_std_mo(mo));
 
-#elif IMPL_CSTDATOMIC
+#elif IMPL_STDATOMIC
 #elif IMPL_ALIGNED_PTRS_ARE_ASSUMED_ATOMIC
 #	if IMPL_HAVE_MEM_FULL_BARRIER
+#		error ""
 #	endif
 #else
 #	error ""
@@ -436,9 +446,10 @@ namespace qak { namespace atomic_imp_ns_ { //===================================
 
 		std::atomic_signal_fence(atomic_imp_ns_::to_std_mo(mo));
 
-#elif IMPL_CSTDATOMIC
+#elif IMPL_STDATOMIC
 #elif IMPL_ALIGNED_PTRS_ARE_ASSUMED_ATOMIC
 #	if IMPL_HAVE_MEM_FULL_BARRIER
+#		error ""
 #	endif
 #else
 #	error ""

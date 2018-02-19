@@ -25,7 +25,21 @@
 #define qak_optional_hxx_INCLUDED_
 
 #include "qak/config.hxx"
+
+#if QAK_CXX_LIB_IS_MSVCPPRT
+#   define QAK_OPTIONAL_USE_STD 1
+#endif
+
+#if QAK_OPTIONAL_USE_STD
+
+#include <optional>
+
+namespace qak { template <class T> using optional = std::optional<T>; }
+
+#else // of if QAK_OPTIONAL_USE_STD
+
 #include "qak/alignof.hxx"
+#include "qak/fail.hxx"
 
 #include <cassert>
 #include <new>
@@ -185,24 +199,10 @@ namespace qak { //==============================================================
 //		template <class U> U    as() const;
 //		template <>        bool as<bool>() const;
 
-#if !QAK_COMPILER_FAILS_EXPLICIT_CONVERSIONS // supports explicit conversion operators
-
 		explicit operator bool() const
 		{
 			return this->as<bool>();
 		}
-
-#else // workaround for compilers that don't support explicit conversion operators
-
-	private:
-		struct inaccessible_t_ { int ina; };
-	public:
-		operator int inaccessible_t_::*() const
-		{
-			return this->as<bool>() ? &inaccessible_t_::ina : 0;
-		}
-
-#endif // of workaround for compilers that don't support explicit conversion operators
 
 		void reset()
 		{
@@ -271,30 +271,15 @@ namespace qak { //==============================================================
 		}
 
 	private:
-		template <class U, class T> friend struct optional_as_s;
+		template <class U_, class T_> friend struct optional_as_s;
 
-#if 1
 		typedef typename std::aligned_storage<
 				sizeof(T) + 1,
 				qak::alignof_t<T>::value
 			>::type stor_t;
 
-		static_assert(sizeof(T) + 1 <= sizeof(stor_t), "");
-		static_assert(qak::alignof_t<T>::value <= qak::alignof_t<stor_t>::value, "");
-
-#elif !QAK_COMPILER_FAILS_ALIGNOF_OPERATOR // compiler supports alignof operator
-
-		typedef typename std::aligned_storage<sizeof(T) + 1, alignof(T)>::type stor_t;
-		static_assert(sizeof(T) + 1 <= sizeof(stor_t), "");
-		static_assert(alignof(T) <= alignof(stor_t), "");
-
-#else // workaround for compilers that don't support alignof operator yet
-
-		typedef typename std::aligned_storage<sizeof(T) + 1, std::alignment_of<T>::value>::type stor_t;
-		static_assert(sizeof(T) + 1 <= sizeof(stor_t), "");
-		static_assert(std::alignment_of<T>::value <= std::alignment_of<stor_t>::value, "");
-
-#endif // of workaround for compilers that don't support alignof operator yet
+		static_assert(sizeof(T) + 1 <= sizeof(stor_t));
+		static_assert(qak::alignof_t<T>::value <= qak::alignof_t<stor_t>::value);
 
 		stor_t stor_;
 	};
@@ -305,17 +290,29 @@ namespace qak { //==============================================================
 //		static bool f(optional<T> const & self) { return reinterpret_cast<char const *>(&self.stor_)[sizeof(T)]; }
 //	};
 
+	template <class T> inline
+	T const & get_or_else(optional<T> const & op, T const & dflt) { return op ? *op : dflt; }
+
+	template <class T> inline
+		T const & get_or_fail(optional<T> const & op)
+	{
+		qak::fail_unless(op);
+		return *op;
+	}
+
 } // namespace qak ====================================================================================================|
 namespace std {
 
 	//	Enable std::swap for optional.
 	//
 	template <class T>
-	inline void swap(::qak::optional<T> & a, ::qak::optional<T> & b)
+	inline void swap(qak::optional<T> & a, qak::optional<T> & b)
 	{
 		a.swap(b);
 	}
 
 } // namespace std ====================================================================================================|
+
+#endif // of else of if QAK_OPTIONAL_USE_STD
 
 #endif // ndef qak_optional_hxx_INCLUDED_

@@ -59,7 +59,7 @@ namespace qak { //==============================================================
 	//-----------------------------------------------------------------------------------------------------------------|
 
 	//	Returns whether or not the specified time_source units are ns.
-	inline QAK_MAYBE_constexpr bool time_source_is_ns(time_source ts)
+	inline constexpr bool time_source_is_ns(time_source ts)
 	{
 		return    ts == time_source::wallclock_ns
 		       || ts == time_source::realtime_ns
@@ -69,7 +69,7 @@ namespace qak { //==============================================================
 	//-----------------------------------------------------------------------------------------------------------------|
 
 	//	Returns whether or not the specified time_source units are cpu cycles.
-	inline QAK_MAYBE_constexpr bool time_source_is_cycles(time_source ts)
+	inline constexpr bool time_source_is_cycles(time_source ts)
 	{
 		return ts == time_source::cpu_cycles;
 	}

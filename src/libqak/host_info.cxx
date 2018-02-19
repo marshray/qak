@@ -26,11 +26,13 @@
 #include "qak/config.hxx"
 #include "qak/fail.hxx"
 
-#if QAK_POSIX
+#include <cassert> // assert
+
+#if QAK_API_POSIX
 
 #	include <unistd.h> // sysconf
 
-#elif QAK_WIN32
+#elif QAK_API_WIN32
 
 #	include "../platforms/win32/win32_lite.hxx"
 
@@ -53,7 +55,7 @@ namespace qak { namespace host_info { //========================================
 
 	unsigned cnt_cpus_configured()
 	{
-#if QAK_POSIX
+#if QAK_API_POSIX
 
 		unsigned u_cnt_cpus_configured = 0;
 		{
@@ -66,7 +68,7 @@ namespace qak { namespace host_info { //========================================
 				long l = ::sysconf(
 					_SC_NPROCESSORS_CONF ); //? this macro may not be available everywhere.
 
-				throw_unless(0 < l && l <= fc_max_plausible_cpus);
+				fail_unless(0 < l && l <= fc_max_plausible_cpus);
 
 				f_most_recent_sysconf_cnt_cpus_configured_ns = now_ns;
 				f_cnt_cpus_configured = static_cast<unsigned>(l);
@@ -77,7 +79,7 @@ namespace qak { namespace host_info { //========================================
 
 		return u_cnt_cpus_configured;
 
-#elif QAK_WIN32
+#elif QAK_API_WIN32
 
 		win32::SYSTEM_INFO si;
 		win32::GetSystemInfo(&si);
@@ -94,7 +96,7 @@ namespace qak { namespace host_info { //========================================
 
 	unsigned cnt_cpus_available()
 	{
-#if QAK_POSIX
+#if QAK_API_POSIX
 
 		unsigned u_cnt_cpus_available = 0;
 		{
@@ -107,7 +109,7 @@ namespace qak { namespace host_info { //========================================
 				long l = ::sysconf(
 					_SC_NPROCESSORS_ONLN ); //? this macro may not be available everywhere.
 
-				throw_unless(0 < l && l <= fc_max_plausible_cpus);
+				fail_unless(0 < l && l <= fc_max_plausible_cpus);
 
 				f_most_recent_sysconf_cnt_cpus_available_ns = now_ns;
 				f_cnt_cpus_available = static_cast<unsigned>(l);
@@ -118,12 +120,12 @@ namespace qak { namespace host_info { //========================================
 
 		return u_cnt_cpus_available;
 
-#elif QAK_WIN32
+#elif QAK_API_WIN32
 
 		win32::DWORD_PTR processMask = 0;
 		win32::DWORD_PTR systemMask = 0;
 		win32::BOOL success = win32::GetProcessAffinityMask(win32::GetCurrentProcess(), &processMask, &systemMask);
-		throw_unless(success && (systemMask & processMask) != 0);
+		fail_unless(success && (systemMask & processMask) != 0);
 
 		win32::DWORD_PTR availMask = processMask & systemMask;
 

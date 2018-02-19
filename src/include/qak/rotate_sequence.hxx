@@ -38,11 +38,7 @@ namespace qak { //==============================================================
 
 	template <class T> inline
 	typename std::enable_if<
-#if !QAK_COMPILER_FAILS_CONSTEXPR
 		is_memcpyable<T>(),
-#else
-		is_memcpyable<T>::value,
-#endif
 	void>::type rotate_sequence(T * p_b, T * p_m, T * p_e)
 	{
 		assert(p_b <= p_m && p_m <= p_e);
@@ -58,7 +54,7 @@ namespace qak { //==============================================================
 
 	template <class T> inline
 	typename std::enable_if<
-		! is_memcpyable<T>::value,
+		! is_memcpyable<T>(),
 	void>::type rotate_sequence(T * p_b, T * p_m, T * p_e)
 	{
 		static_assert(!sizeof(T), "TODO");

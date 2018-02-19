@@ -28,23 +28,23 @@
 
 namespace zzz { //=====================================================================================================|
 
-	QAKtest_anon()
+	QAKtest(sleep_ns__wallclock_ns)
 	{
-		::qak::this_thread::sleep_ns(1000);
+		qak::this_thread::sleep_ns(1000);
 		int64_t t_ns = read_time_source(qak::time_source::wallclock_ns);
 		QAK_verify( 1 < t_ns && t_ns < int64_t(10)*1000*1000*1000 );
 	}
 
-	QAKtest_anon()
+	QAKtest(realtime_ns)
 	{
-		::qak::this_thread::sleep_ns(1000);
+		qak::this_thread::sleep_ns(1000);
 		int64_t t_ns = read_time_source(qak::time_source::realtime_ns);
 		QAK_verify( 1 < t_ns && t_ns < int64_t(10)*1000*1000*1000 );
 	}
 
-	QAKtest_anon()
+	QAKtest(cpu_thread_ns)
 	{
-		::qak::this_thread::sleep_ns(1000);
+		qak::this_thread::sleep_ns(1000);
 		int64_t t0_ns = read_time_source(qak::time_source::cpu_thread_ns);
 		bool advanced = false;
 		for (unsigned n = 0; n < 1*1000*1000*1000; ++n)
@@ -59,12 +59,12 @@ namespace zzz { //==============================================================
 		QAK_verify( advanced );
 	}
 
-	QAKtest_anon()
+	QAKtest(cpu_cycles)
 	{
-		::qak::this_thread::sleep_ns(1000);
+		qak::this_thread::sleep_ns(1000);
 		int64_t t0_cycles = read_time_source(qak::time_source::cpu_cycles);
 		QAK_verify( t0_cycles );
-		::qak::this_thread::sleep_ns(1000);
+		qak::this_thread::sleep_ns(1000);
 		int64_t t1_cycles = read_time_source(qak::time_source::cpu_cycles);
 		QAK_verify( t0_cycles != t1_cycles );
 	}

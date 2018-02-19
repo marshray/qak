@@ -73,8 +73,8 @@ namespace qak_test_ {
 #define QAKtest_IMP2_(TYPE_NAME, ID, ...)                           \
 struct TYPE_NAME : qak_test_base_                                   \
 {                                                                   \
-	TYPE_NAME() : qak_test_base_(__LINE__, #ID, "" __VA_ARGS__) { } \
-	virtual void test_fn();                                         \
+   TYPE_NAME() : qak_test_base_(__LINE__, #ID, "" __VA_ARGS__) { }  \
+   virtual void test_fn();                                          \
 };                                                                  \
 TYPE_NAME QAK_PASTE(g_, QAK_PASTE(TYPE_NAME, _inst));               \
 void TYPE_NAME::test_fn()

@@ -45,7 +45,7 @@ namespace qak { //==============================================================
 	//	I.e., bitsizeof<int>().
 	//
 	template <class T>
-	QAK_MAYBE_constexpr std::size_t bitsizeof()
+	constexpr std::size_t bitsizeof()
 	{
 		return sizeof(T)*CHAR_BIT;
 	}
@@ -54,7 +54,7 @@ namespace qak { //==============================================================
 
 	//	One-argument form for supplying a value ref (which goes unused).
 	template <class T>
-	QAK_MAYBE_constexpr std::size_t bitsizeof(T const &)
+	constexpr std::size_t bitsizeof(T const &)
 	{
 		return bitsizeof<T>();
 	}

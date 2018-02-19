@@ -36,16 +36,16 @@ namespace hash_imp_ {
 
 	template <> struct fnv1a_params<4> // 32-bit FNV-1a
 	{
-		QAK_MAYBE_constexpr std::size_t offset_basis() { return 2166136261UL; }
-		QAK_MAYBE_constexpr std::size_t prime()        { return   16777619UL; }
+		constexpr std::size_t offset_basis() { return 2166136261UL; }
+		constexpr std::size_t prime()        { return   16777619UL; }
 	};
 
 #if 64 <= QAK_pointer_bits
 
 	template <> struct fnv1a_params<8> // 64-bit FNV-1a
 	{
-		QAK_MAYBE_constexpr std::size_t offset_basis() { return 14695981039346656037ULL; }
-		QAK_MAYBE_constexpr std::size_t prime()        { return        1099511628211ULL; }
+		constexpr std::size_t offset_basis() { return 14695981039346656037ULL; }
+		constexpr std::size_t prime()        { return        1099511628211ULL; }
 	};
 
 #endif // 64 <= QAK_pointer_bits
@@ -196,7 +196,7 @@ namespace hash_imp_ {
 namespace std {
 
 	template <class K>
-	inline void swap(::qak::hash<K> & a, ::qak::hash<K> & b)
+	inline void swap(qak::hash<K> & a, qak::hash<K> & b)
 	{
 		a.swap(b);
 	}

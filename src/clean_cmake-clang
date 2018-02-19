@@ -260,14 +260,13 @@
 #  -Xpreprocessor <arg>    Pass <arg> to the preprocessor
 #  -x <language>           Treat subsequent input files as having type <language>
 
-C_COMPILER=clang
+C_COMPILER=clang-3.9
 
 # clang++ -print-search-dirs
 # programs: = /opt/llvm.org/prefix_release/bin:/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../x86_64-redhat-linux/bin
 # libraries: =/opt/llvm.org/prefix_release/bin/../lib/clang/3.4:/usr/lib/gcc/x86_64-redhat-linux/4.4.7
 #            :/usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../../../lib64:/lib/../lib64:/usr/lib/../lib64
 #            :usr/lib/gcc/x86_64-redhat-linux/4.4.7/../../..:/lib:/usr/lib
-
 
 C_CXX_FLAGS+=' -v'
 C_CXX_FLAGS='-g'
@@ -276,12 +275,17 @@ C_CXX_FLAGS+=' -O0'
 C_CXX_FLAGS+=' -fexceptions'
 #C_CXX_FLAGS+=' -verify'
 #C_CXX_FLAGS+=' -time'
+C_CXX_FLAGS+=' -ferror-limit=5'
 
-CXX_COMPILER=clang++
+CXX_COMPILER=clang++-3.9
 
-CXXFLAGS='-stdlib=libc++'
-CXXFLAGS+=' -std=c++1y -fcxx-exceptions'
+CXXFLAGS=''
+#CXXFLAGS='-stdlib=libc++'
+#CXXFLAGS+=' -fcxx-exceptions'
+CXXFLAGS+=' -std=c++1z' # upcoming C++ 17
 
+QAK_ccxx_toolchain=clang
+
+export QAK_ccxx_toolchain
 export CFLAGS="$C_CXX_FLAGS $CFLAGS"
 export CXXFLAGS="$C_CXX_FLAGS $CXXFLAGS"
-

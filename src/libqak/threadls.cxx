@@ -27,7 +27,7 @@
 
 //=====================================================================================================================|
 
-#if QAK_POSIX
+#if QAK_API_POSIX
 #elif QAK_WIN32
 #	include "../platforms/win32/win32_lite.hxx"
 #else // of elif QAK_WIN32
@@ -51,7 +51,7 @@ namespace qak { //==============================================================
 
 	struct threadls_key::imp : threadls_key
 	{
-#if QAK_POSIX
+#if QAK_API_POSIX
 
 		pthread_key_t key;
 

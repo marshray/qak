@@ -19,8 +19,8 @@
 //
 //#include "qak/abs.hxx"
 
-#ifndef qak_abs_hxx_INCLUDED_
-#define qak_abs_hxx_INCLUDED_
+#ifndef qak_alignof_hxx_INCLUDED_
+#define qak_alignof_hxx_INCLUDED_
 
 #include "qak/config.hxx" // QAK_alignof_[tx]
 
@@ -32,17 +32,17 @@ namespace qak { //==============================================================
 	template <class T>
 	struct alignof_t
 	{
-		static std::size_t const value = QAK_alignof_t(T);
+		constexpr static std::size_t const value = QAK_alignof_t(T);
 	};
 
 	//	One-argument form for supplying a value ref (which goes unused).
-	template <class T> QAK_MAYBE_constexpr
+	template <class T> constexpr
 		std::size_t alignof_x(T const &)
 	{
-		return QAK_alignof_t<T>::value;
+		return QAK_alignof_t(T);
 	}
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
 } // namespace qak ====================================================================================================|
-#endif // ndef qak_abs_hxx_INCLUDED_
+#endif // ndef qak_alignof_hxx_INCLUDED_

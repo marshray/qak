@@ -26,7 +26,7 @@
 
 namespace qak { //=====================================================================================================|
 
-	template <class T> QAK_MAYBE_constexpr
+	template <class T> constexpr
 	T const & min (T const & a, T const & b)
 	{
 		return b < a ? b : a;
@@ -34,7 +34,7 @@ namespace qak { //==============================================================
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
-	template <class T, class Compare> QAK_MAYBE_constexpr
+	template <class T, class Compare> constexpr
 	T const & min (T const & a, T const & b, Compare comp)
 	{
 		return comp(b, a) ? b : a;
@@ -42,7 +42,7 @@ namespace qak { //==============================================================
 
 	//=================================================================================================================|
 
-	template <class T> QAK_MAYBE_constexpr
+	template <class T> constexpr
 	T const & max (T const & a, T const & b)
 	{
 		return a < b ? b : a;
@@ -50,7 +50,7 @@ namespace qak { //==============================================================
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
-	template <class T, class Compare> QAK_MAYBE_constexpr
+	template <class T, class Compare> constexpr
 	T const & max (T const & a, T const & b, Compare comp)
 	{
 		return comp(a, b) ? b : a;

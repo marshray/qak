@@ -20,33 +20,35 @@
 //#include "qak/abs.hxx"
 
 #ifndef qak_abs_hxx_INCLUDED_
-#define qak_abs_hxx_INCLUDED_
+#define qak_abs_hxx_INCLUDED_ 1
 
 #include "qak/config.hxx"
 
 #include <type_traits> // enable_if
 
 namespace qak { //=====================================================================================================|
+/*
+	template <class T, class Enable = void> constexpr T abs(T const & a);
 
-	template <class T, class Enable = void> QAK_MAYBE_constexpr T abs(T const & a);
-
-	template <class T> QAK_MAYBE_constexpr
+	template <class T> constexpr
 	typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, T>::type abs(T const & a)
 	{
 		return a;
 	}
-/*
-	template <class T> QAK_MAYBE_constexpr
+
+	template <class T> constexpr
 	typename std::enable_if<std::is_integral<T>::value, T>::type abs(T const & a)
 	{
 		return T(0) <= a ? a : -a;
 	}
-	template <class T> QAK_MAYBE_constexpr
+*/
+
+	template <class T> constexpr
 	T abs(T const & a)
 	{
 		return T(0) <= a ? a : -a;
 	}
-*/
+
 	//-----------------------------------------------------------------------------------------------------------------|
 
 } // namespace qak ====================================================================================================|

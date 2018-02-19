@@ -28,11 +28,21 @@
 #include "qak/optional.hxx"
 
 #include <cstdint> // std::uintptr_t
-#include <functional>
+#include <functional> // std::function
 
 namespace qak { //=====================================================================================================|
 
 	struct thread;
+
+#if QAK_THREAD_PTHREAD
+
+	typedef unsigned long thread_id_t;
+
+#elif QAK_API_WIN32
+
+	typedef std::uint32_t thread_id_t;
+
+#endif
 
 	//-----------------------------------------------------------------------------------------------------------------|
 
@@ -45,15 +55,8 @@ namespace qak { //==============================================================
 	//
 	struct thread : rpointee_base<thread>
 	{
-		//	qak::thread::id_type
-#if QAK_THREAD_PTHREAD
-		typedef std::uintptr_t id_type;
-#elif QAK_WIN32
-		typedef std::uint32_t id_type;
-#endif
-
 		//	Caution: timeouts greater than this will be clamped to this value.
-		static std::int64_t max_timeout_ns() QAK_MAYBE_constexpr
+		static constexpr std::int64_t max_timeout_ns()
 		{
 			return std::int64_t(1) << 62; // about 146 years
 		}
@@ -64,25 +67,25 @@ namespace qak { //==============================================================
 		//	exited normally or 'empty' if the thread exited via an exception.
 		//	Throws if called from the same thread.//?
 		//
-		optional<std::uintptr_t> join() const;
+		qak::optional<std::uintptr_t> join() const;
 
 		//	Suspends the caller until either the thread exits or the specified timeout elapses.
 		//	If the timeout elapsed with the thread still running, returns empty.
-		//	Otherwise, returns an optional<uintptr_t> that holds the exit code if the thread
+		//	Otherwise, returns an qak::optional<uintptr_t> that holds the exit code if the thread
 		//	exited normally or 'empty' if the thread exited via an exception.
 		//	Returns 'empty' immediately if called from the same thread.
 		//
-		optional<optional<std::uintptr_t>> timed_join_ns(std::int64_t timeout_ns) const;
+		qak::optional<qak::optional<std::uintptr_t>> timed_join_ns(std::int64_t timeout_ns) const;
 
 		//	If the thread is still running, returns 'empty' immediately.
 		//	Returns 'empty' immediately if called from the same thread.
-		//	Otherwise, returns an optional<uintptr_t> that holds the exit code if the thread
+		//	Otherwise, returns an qak::optional<uintptr_t> that holds the exit code if the thread
 		//	exited normally or 'empty' if the thread exited via an exception.
 		//
-		optional<optional<std::uintptr_t>> finished() const;
+		qak::optional<qak::optional<std::uintptr_t>> finished() const;
 
 		//	Returns the thread ID as defined by the OS.
-		id_type get_id() const;
+		thread_id_t get_id() const;
 
 		//	Returns true iff the supplied thread object refers to the same OS thread.
 		bool is_same(thread::RPC that) const QAK_noexcept;
@@ -96,7 +99,7 @@ namespace qak { //==============================================================
 	protected:
 
 		thread();
-		virtual optional<optional<std::uintptr_t>> join_timeout_v(optional<std::int64_t>) const = 0;
+		virtual qak::optional<qak::optional<std::uintptr_t>> join_timeout_v(qak::optional<std::int64_t>) const = 0;
 
 	private:
 		thread(thread const &); // unimplemented
@@ -109,8 +112,8 @@ namespace qak { //==============================================================
 
 	//	Begins a new thread.
 	//
-	//	The void() thread_fn version yields an exit code of 0 on normal termination.
-	//	Both versions yield std::uintptr_t(-1) on termination by exception.
+	//	The void() thread_fn version yields an exit code of 0 on normal termination.  ????:j
+	//	Both versions yield std::uintptr_t(-1) on termination by exception. ????
 	//
 	thread::RP start_thread(std::function<void()> thread_fn);
 	thread::RP start_thread_uintptr(std::function<std::uintptr_t()> thread_fn);
@@ -119,14 +122,14 @@ namespace qak { //==============================================================
 
 	namespace this_thread {
 
-		//	Returns a reference to a thread object that refers to the calling thread. This is not necessarily the
+		//	Returns a rptr to a thread object that refers to the calling thread. This is not necessarily the
 		//	same object returned by start_thread.
 		thread::RP get();
 
 		//-------------------------------------------------------------------------------------------------------------|
 
 		//	Gets the OS-defined thread ID.
-		thread::id_type get_id() QAK_noexcept;
+		thread_id_t get_id() QAK_noexcept;
 
 		//-------------------------------------------------------------------------------------------------------------|
 

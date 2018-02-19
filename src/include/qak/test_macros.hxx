@@ -23,21 +23,35 @@
 #define qak_test_macros_hxx_INCLUDED_
 
 #include "qak/config.hxx"
+#include "qak/fail.hxx"
 
 //=====================================================================================================================|
 
+struct test_fail : std::logic_error
+{
+	test_fail() : logic_error("Test fail.") { }
+};
+
 //	Use this to fail a test with only a generic message.
-#define QAK_fail_test() do { throw 0; } while (false)
+#define QAK_fail_test() do { throw test_fail(); } while (false)
 
 //	Check that the macro argument evaluates to true in boolean context.
 //#define QAK_verify(...) if (__VA_ARGS__) { } else QAK_fail_test()
 #define QAK_verify(b) if (b) { } else QAK_fail_test()
+#define QAK_assert(b) if (b) { } else QAK_fail_test()
+
+//	Check that the macro argument evaluates to false in boolean context.
+#define QAK_refute(b) if (!(b)) { } else QAK_fail_test()
+#define QAK_verify_not(b) if (!(b)) { } else QAK_fail_test()
+#define QAK_assert_not(b) if (!(b)) { } else QAK_fail_test()
 
 //	Check that the two macro arguments compare equal with '=='.
 #define QAK_verify_equal(a, b) if ((a) == (b)) { } else QAK_fail_test()
 
 //	Check that the two macro arguments compare not equal with '!='.
+#define QAK_verify_unequal(a, b) if ((a) != (b)) { } else QAK_fail_test()
 #define QAK_verify_notequal(a, b) if ((a) != (b)) { } else QAK_fail_test()
+#define QAK_verify_nonequal(a, b) if ((a) != (b)) { } else QAK_fail_test()
 
 //	Check that the macro argument is zero.
 #define QAK_verify_zero(a) if ((a) == 0) { } else QAK_fail_test()

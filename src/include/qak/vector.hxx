@@ -23,6 +23,21 @@
 #define qak_vector_hxx_INCLUDED_
 
 #include "qak/config.hxx"
+
+#if QAK_CXX_LIB_IS_MSVCPPRT
+#   define QAK_VECTOR_USE_STD 1
+#endif
+
+#if QAK_VECTOR_USE_STD
+
+#include <vector>
+namespace qak {
+	template <class T, class A = std::allocator<T> >
+	using vector = std::vector<T, A>;
+} // namespace qak
+
+#else // of if QAK_VECTOR_USE_STD
+
 #include "qak/min_max.hxx"
 #include "qak/alignof.hxx"
 
@@ -244,7 +259,7 @@ namespace qak { //==============================================================
 			return static_cast<size_type>(e_ - b_);
 		}
 
-		QAK_MAYBE_constexpr size_type max_size()
+		static constexpr size_type max_size()
 		{
 			return std::numeric_limits<difference_type>::max();
 		}
@@ -281,7 +296,7 @@ namespace qak { //==============================================================
 				else // need more allocation
 				{
 					vector<T> that;
-					that.reserve(sz);
+					that.reserve(sz); //? TODO shouldn't this grow exponentially?
 					that.assign(b_, e_);
 					that.resize(sz);
 					this->swap(that);
@@ -482,7 +497,7 @@ namespace qak { //==============================================================
 namespace std {
 
 	template <class T>
-	inline void swap(::qak::vector<T> & a, ::qak::vector<T> & b)
+	inline void swap(qak::vector<T> & a, qak::vector<T> & b)
 	{
 		a.swap(b);
 	}
@@ -490,7 +505,12 @@ namespace std {
 	//?template <class T> struct hash;
 	//?template <class T> struct hash<vector<T>>;
 
+	// We don't need to specialize iterator_traits<> (n4659 27.4.1) because qak::vector<T>::iterator is just a
+	// plain pointer type which is already specialized.
+
 } // namespace std ====================================================================================================|
+
+#endif // of else of if QAK_VECTOR_USE_STD
 
 #define QAK_vector_DEFINED_ 1
 

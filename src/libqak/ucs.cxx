@@ -33,7 +33,7 @@ namespace qak { namespace ucs { //==============================================
 		else if (sv < 0x000800) cnt = 2;
 		else if (sv < 0x010000) cnt = 3;
 		else if (sv < 0x110000) cnt = 4;
-		else throw_unconditionally();
+		else fail();
 
 		return cnt;
 	}
@@ -73,7 +73,7 @@ namespace qak { namespace ucs { //==============================================
 			*p_out++ = std::uint8_t(( 2 << 6) | ((u32 >>  0) & ((1 << 6) - 1)));
 			cnt = 4;
 		}
-		else qak::throw_unconditionally();
+		else qak::fail();
 
 		return cnt;
 	}
@@ -117,7 +117,7 @@ namespace qak { namespace ucs { //==============================================
 				u32_ = by & ((1 << 3) - 1);
 			}
 			else
-				throw_unconditionally(); // invalid UTF-8 encoded sequence
+				fail(); // invalid UTF-8 encoded sequence
 		}
 		else
 		{
@@ -130,10 +130,10 @@ namespace qak { namespace ucs { //==============================================
 				u32_ |= by & ((1 << 6) - 1);
 			}
 			else
-				throw_unconditionally(); // invalid UTF-8 encoded sequence
+				fail(); // invalid UTF-8 encoded sequence
 		}
 
-		throw_unless(
+		fail_unless(
 			   state_
 			|| (ucs::scalar_value::is_valid(u32_) && min_valid_ <= u32_) );
 	}

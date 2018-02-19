@@ -26,6 +26,7 @@
 
 #include "qak/config.hxx"
 #include "qak/optional.hxx"
+#include "qak/imp/pthread.hxx"
 
 namespace qak { //=====================================================================================================|
 
@@ -38,46 +39,37 @@ namespace qak { //==============================================================
 	//
 	struct mutex
 	{
+		typedef mutex_lock lock_type;
+
 		mutex();
 		~mutex();
 
 		//	Noncopyable, nonmoveable.
-#if !QAK_COMPILER_FAILS_DELETED_MEMBERS // supports "= delete" syntax
 
 		mutex(mutex const &) = delete;
 		mutex(mutex &&) = delete;
 		mutex & operator = (mutex const &) = delete;
 		mutex & operator = (mutex &&) = delete;
 
-#else // workaround for compilers that don't support "= delete" syntax
-
-	private:
-		mutex(mutex const &); // unimplemented
-		mutex(mutex &&); // unimplemented
-		mutex & operator = (mutex const &); // unimplemented
-		mutex & operator = (mutex &&); // unimplemented
-	public:
-
-#endif // of workaround for compilers that don't support "= delete" syntax
-
 		//	Blocks forever, or until the mutex is acquired, whichever comes first.
 		//	Throws if the mutex is already locked by the current thread.
-		mutex_lock lock();
+		lock_type lock();
 
 		//	Detects if the mutex is already locked by the calling thread. Check
-		//	this before attempting to lock the mutex in order to 
+		//	this before attempting to lock the mutex in order to avoid an exception.
 		bool is_locked_by_this_thread() const;
 
 		//	Acquires the mutex iff it is currently free. Does not block.
 		//	Throws if the mutex is already locked by the current thread.
-		optional<mutex_lock> try_lock();
+		optional<lock_type> try_lock();
 
 	private:
 		friend struct mutex_lock;
 
 #if QAK_THREAD_PTHREAD
 
-		unsigned long long imp_[
+		typedef unsigned long long imp_elem_t;
+		typedef imp_elem_t imp_t[
 				  1 // atomic owning thread ID
 
 				//	Actual pthread mutex is 24 or 40 bytes
@@ -86,7 +78,8 @@ namespace qak { //==============================================================
 
 #elif QAK_THREAD_WIN32
 
-		unsigned long long imp_[
+		typedef unsigned long long imp_elem_t;
+		typedef imp_elem_t imp_t[
 				  1 // atomic owning thread ID
 
 				//	Actual Win32 CRITICAL_SECTION is 24 or 40 bytes
@@ -96,6 +89,8 @@ namespace qak { //==============================================================
 #else
 #	error "port me"
 #endif
+
+		imp_t imp_;
 	};
 
 	//-----------------------------------------------------------------------------------------------------------------|
@@ -104,6 +99,10 @@ namespace qak { //==============================================================
 	//
 	//	* The source object after a std::move operation, which is not necessarily a defined state anyway.
 	//
+	// If you absolutely must have a lock that you can release before the end of its natural scope, you can do:
+	//		std::shared_ptr<qak::mutex::lock_type> sp_lock(
+	//				new qak::mutex::lock_type(std::move(allow_thread_exit.lock())) );
+	//
 	struct mutex_lock
 	{
 		//	Blocks forever, or until the mutex is acquired, whichever comes first.
@@ -111,23 +110,10 @@ namespace qak { //==============================================================
 
 		//	Noncopyable.
 
-#if !QAK_COMPILER_FAILS_DELETED_MEMBERS // supports "= delete" syntax
-
 		mutex_lock() = delete;
 		mutex_lock(mutex_lock const &) = delete;
 		mutex_lock & operator = (mutex_lock const &) = delete;
 		mutex_lock & operator = (mutex_lock &&) = delete;
-
-#else // workaround for compilers that don't support "= delete" syntax
-
-	private:
-		mutex_lock(); // unimplemented
-		mutex_lock(mutex_lock const &); // unimplemented
-		mutex_lock & operator = (mutex_lock const &); // unimplemented
-		mutex_lock & operator = (mutex_lock &&); // unimplemented
-	public:
-
-#endif // of workaround for compilers that don't support "= delete" syntax
 
 		//	Move-constructable (but be careful).
 		mutex_lock(mutex_lock &&);

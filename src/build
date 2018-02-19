@@ -42,6 +42,8 @@ done
 SUCCESS_FLAG=$QAK_BUILD_DIR/success.out
 if [[ -f "$SUCCESS_FLAG" ]]; then rm "$SUCCESS_FLAG"; fi
 
+echo '----------------------------------------------------------------------'
+
 (make --no-print-directory -C "$QAK_BUILD_DIR" && touch "$SUCCESS_FLAG")\
 |& grep -v 'In file included from'
 #	Vim doesn't handle ^^^ this one error message format well currently.

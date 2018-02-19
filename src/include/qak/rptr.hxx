@@ -88,8 +88,16 @@ namespace qak_rptr_imp_ { // ===================================================
 	struct rpointee_base : virtual qak_rptr_imp__rpointee_NTB_
 	{
 		//	Add some handy typedefs to rpointee classes.
-		typedef ::qak::rptr<T> RP;
-		typedef ::qak::rptr<T const> RPC;
+		typedef qak::rptr<T> RP;
+		typedef qak::rptr<T const> RPC;
+	protected:
+		rpointee_base() = default;
+		//rpointee_base() : qak_rptr_imp__rpointee_NTB_() { }
+	private:
+		rpointee_base(rpointee_base const &) = delete;
+		rpointee_base(rpointee_base &&) = delete;
+		rpointee_base & operator = (rpointee_base const &) = delete;
+		rpointee_base & operator = (rpointee_base &&) = delete;
 	};
 
 	//=================================================================================================================|
@@ -102,8 +110,8 @@ namespace qak_rptr_imp_ { // ===================================================
 	struct rpointee_derived
 	{
 		//	Replace rpointee_base typedefs with more specific ones.
-		typedef ::qak::rptr<T> RP;
-		typedef ::qak::rptr<T const> RPC;
+		typedef qak::rptr<T> RP;
+		typedef qak::rptr<T const> RPC;
 	};
 
 } // namespace qak_rptr_imp_
@@ -129,9 +137,9 @@ namespace qak { //==============================================================
 
 		//	Default construction and construction from nullptr.
 
-		QAK_MAYBE_constexpr rptr() QAK_noexcept : p_(0) { }
+		constexpr rptr() QAK_noexcept : p_(0) { }
 
-		explicit QAK_MAYBE_constexpr rptr(std::nullptr_t) QAK_noexcept : p_(0) { }
+		explicit constexpr rptr(std::nullptr_t) QAK_noexcept : p_(0) { }
 
 		//	Construction from plain pointer. Also accepts pointers-to-derived.
 
@@ -387,17 +395,16 @@ namespace qak { //==============================================================
 			return use_count() == 1;
 		}
 
-#if !QAK_COMPILER_FAILS_EXPLICIT_CONVERSIONS // supports explicit conversion operators
 		explicit operator bool () const QAK_noexcept
 		{
 			return !! p_;
 		}
-#else // workaround for compilers that don't support explicit conversion operators
+#if 0 // do we want an implicit conversion to bool?
 	private:
 		struct inaccessible_t_ { int ina; };
 	public:
 		operator int inaccessible_t_::*() const { return p_ ? &inaccessible_t_::ina : 0; }
-#endif // of workaround for compilers that don't support explicit conversion operators
+#endif // implicit conversion to bool
 
 		//	Increments the refcnt manually. Use with caution.
 		void unsafe__inc_refcnt()
@@ -514,7 +521,7 @@ namespace qak { //==============================================================
 } // namespace qak
 namespace std { //=====================================================================================================|
 
-	template <class T> void swap( ::qak::rptr<T> & a, ::qak::rptr<T> & b ) QAK_noexcept { a.swap(b); }
+	template <class T> void swap( qak::rptr<T> & a, qak::rptr<T> & b ) QAK_noexcept { a.swap(b); }
 
 	//	ostream <<
 
