@@ -2,7 +2,7 @@
 
 Qak
 
-by Marsh Ray <marsh@extendedsubet.com>
+by Marsh Ray <marsh@live.com>
 
 Some C++ code I find useful and wanted to release under a permissive license.
 Pronounce 'kak'. All of the good short names are taken or, if not, this project
@@ -23,10 +23,12 @@ vector's allocator support anyway.
 
 At the current time, the toolset used for development is:
 
-	MS Visual Studio 2013 C++
+	clang++-3.9
+	cmake 3.9.4
 
 Also had once been tested with:
 
+	MS Visual Studio 2017 C++
 	MS Visual Studio 2012 C++
 
 	g++ 4.6.2
@@ -34,7 +36,6 @@ Also had once been tested with:
 	cmake 2.8.0
 	Linux 2.6.32-35 x86_64 AKA amd64 AKA x64
 	Ubuntu 10.04 LTS _Lucid Lynx_ - Release amd64 (20100429)
-
 
 Misc coding practices:
 
@@ -54,8 +55,6 @@ Misc coding practices:
 
 	Use //? or //?TODO to indicate places that are incomplete or may need review or revision.
 	Use //? or //?OPT to indicate possible performance optimizations.
-
-
 
 
 Headers from the standard library, annotated with the lines of dependency c++ headers

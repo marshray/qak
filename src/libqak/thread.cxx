@@ -167,17 +167,19 @@ namespace qak { //==============================================================
 		thread_imp() :
 			started_by_start_routine(true),
 			p_thread_fn_ui(0),
-			p_thread_fn_void(0),
-			ahth(invalid_thread_handle_value),
-			exit_method(not_known_to_have_exited)
+            p_thread_fn_void(0),
+            exit_code(0),
+            exit_method(not_known_to_have_exited),
+            ahth(invalid_thread_handle_value)
 		{ }
 
 		explicit thread_imp(thread_handle_t th_h) :
 			started_by_start_routine(false),
 			p_thread_fn_ui(0),
-			p_thread_fn_void(0),
-			ahth(th_h),
-			exit_method(not_known_to_have_exited)
+            p_thread_fn_void(0),
+            exit_code(0),
+            exit_method(not_known_to_have_exited),
+            ahth(th_h)
 		{ }
 
 		~thread_imp()

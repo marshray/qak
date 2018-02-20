@@ -394,9 +394,6 @@ std::cerr << psz << "\n";//?
 
 #if QAK_THREAD_PTHREAD
 
-		thread_id_t tid_self = ::pthread_self();
-		thread_id_t tid_owning = OWNING_THREAD_ID_const(p_m_);
-
 		assert(::pthread_equal(OWNING_THREAD_ID_const(p_m_), ::pthread_self()));
 
 #elif QAK_THREAD_WIN32

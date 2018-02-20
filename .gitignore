@@ -1,3 +1,9 @@
 build-*/
 junk.txt
 src/toolchains/msvs/2012
+*.swp
+*.stash
+*~
+*.o
+*.so
+

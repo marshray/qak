@@ -22,6 +22,10 @@ set -o errexit
 
 source $(dirname $(readlink -n -f "$0"))/zz-build-config "$@"
 
+if [[ ! -d "$QAK_BUILD_DIR" ]]; then
+	mkdir -p "$QAK_BUILD_DIR"
+fi
+
 #	Command-line options.
 unset -v NO_TEST
 for arg in '--debug' "$@"
