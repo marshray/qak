@@ -81,4 +81,8 @@ unix {
     INSTALLS += target
 }
 
+*-g++* {
+    QMAKE_CXXFLAGS += -std=c++17
+}
+
 INCLUDEPATH += $$PWD/../../../../include
