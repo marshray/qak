@@ -101,7 +101,7 @@ namespace permutation_imp {
 	template <class T>
 	T sum_overflow_check(T sz, T n)
 	{
-		throw_if(false); //? TODO actually implement the check :-)
+        fail_if(false); //? TODO actually implement the check :-)
 
 		return static_cast<T>(sz + n);
 	};

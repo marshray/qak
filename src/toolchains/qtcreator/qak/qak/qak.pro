@@ -27,16 +27,16 @@ SOURCES += \
     ../../../../libqak/host_info.cxx \
     ../../../../libqak/mutex.cxx \
     ../../../../libqak/now.cxx \
+    ../../../../libqak/permutation.cxx \
+    ../../../../libqak/rotate_sequence.cxx \
     ../../../../libqak/rptr.cxx \
     ../../../../libqak/static_data.cxx \
     ../../../../libqak/stopwatch.cxx \
     ../../../../libqak/thread.cxx \
+    ../../../../libqak/thread_group.cxx \
     ../../../../libqak/ucs.cxx
 # Also:
-#libqak/permutation.cxx
-#libqak/rotate_sequence.cxx
-#libqak/threadls.cxx superceded by thread_local
-#libqak/thread_group.cxx
+#    ../../../../libqak/threadls.cxx port me
 
 INCLUDEPATH += $$PWD/../../../include
 HEADERS += \

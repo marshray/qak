@@ -163,7 +163,7 @@ namespace qak { //==============================================================
 	void thread_group::set_target_cnt_threads(std::size_t cnt)
 	{
 		thread_group_data * p_tgd = static_cast<thread_group_data *>(pv_);
-		throw_unless(p_tgd);
+        fail_unless(p_tgd);
 
 		p_tgd->target_cnt_threads_ = cnt;
 
@@ -175,7 +175,7 @@ namespace qak { //==============================================================
 	size_t thread_group::get_target_cnt_threads() const
 	{
 		thread_group_data * p_tgd = static_cast<thread_group_data *>(pv_);
-		throw_unless(p_tgd);
+        fail_unless(p_tgd);
 
 		return p_tgd->target_cnt_threads_;
 	}
@@ -187,9 +187,9 @@ namespace qak { //==============================================================
 	{
 		double d = coverage * host_info::cnt_cpus_available() + 0.5;
 
-		throw_unless(0.0 <= d && d <= std::numeric_limits<std::size_t>::max());
+        fail_unless(0.0 <= d && d <= std::numeric_limits<std::size_t>::max());
 		std::size_t u = static_cast<std::size_t>(d);
-		throw_unless(std::fabs(double(u) - d) <= 1.0);
+        fail_unless(std::fabs(double(u) - d) <= 1.0);
 
 		set_target_cnt_threads(u);
 	}
@@ -200,7 +200,7 @@ namespace qak { //==============================================================
 	size_t thread_group::get_current_cnt_threads() const
 	{
 		rptr<thread_group_data> p_tgd(static_cast<thread_group_data *>(pv_));
-		throw_unless(p_tgd);
+        fail_unless(p_tgd);
 
 		mutex_lock lock(p_tgd->mut_);
 		return p_tgd->cnt_threads_requested_;
@@ -225,7 +225,7 @@ namespace qak { //==============================================================
 	bool thread_group::timed_join(std::int64_t max_wait_ns = -1)
 	{
 		rptr<thread_group_data> p_tgd(static_cast<thread_group_data *>(pv_));
-		throw_unless(p_tgd);
+        fail_unless(p_tgd);
 		return p_tgd->timed_join(max_wait_ns);
 	}
 
@@ -298,7 +298,7 @@ namespace qak { //==============================================================
 					if (rp_threadinfo && rp_threadinfo->state == thread_state::exiting)
 					{
 						assert(cnt_threads_not_yet_joined_);
-						throw_unless(rp_threadinfo->rp_thread);
+                        fail_unless(rp_threadinfo->rp_thread);
 
 						bool callerThreadExiting = this_thread::is_same(rp_threadinfo->rp_thread);
 						assert(!callerThreadExiting); // how would this happen anyway?
