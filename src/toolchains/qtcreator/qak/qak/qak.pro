@@ -38,7 +38,7 @@ SOURCES += \
 # Also:
 #    ../../../../libqak/threadls.cxx port me
 
-INCLUDEPATH += $$PWD/../../../include
+INCLUDEPATH += $$_PRO_FILE_PWD_/../../../include
 HEADERS += \
     ../../../../include/qak/host_info.hxx \
     ../../../../include/qak/abs.hxx \

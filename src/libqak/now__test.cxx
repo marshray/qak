@@ -23,17 +23,25 @@
 
 #include "qak/config.hxx"
 #include "qak/thread.hxx"
+#include "qak/stopwatch.hxx"
 #include "qak/test_app_pre.hxx"
 #include "qak/test_macros.hxx"
 
 namespace zzz { //=====================================================================================================|
 
-	QAKtest(sleep_ns__wallclock_ns)
+    QAKtest(wallclock_ns)
+    {
+        int64_t t_ns = read_time_source(qak::time_source::wallclock_ns);
+        QAK_verify( 1 < t_ns && t_ns < int64_t(10)*1000*1000*1000 );
+    }
+
+    QAKtest(sleep_ns)
 	{
-		qak::this_thread::sleep_ns(1000);
-		int64_t t_ns = read_time_source(qak::time_source::wallclock_ns);
-		QAK_verify( 1 < t_ns && t_ns < int64_t(10)*1000*1000*1000 );
-	}
+        qak::stopwatch sw;
+        qak::this_thread::sleep_ns(1000);
+        double elapsed = sw.elapsed_s();
+        QAK_verify( 900e-9 <= elapsed && elapsed < 1.0);
+    }
 
 	QAKtest(realtime_ns)
 	{

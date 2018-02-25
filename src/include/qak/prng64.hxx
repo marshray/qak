@@ -49,9 +49,7 @@ namespace imp_prng64_ {
 	constexpr std::uint64_t z_addn =          3037000493UL;
 	constexpr std::uint64_t advance(std::uint64_t z)
 	{
-		z *= z_mult;
-		z += z_addn;
-		return z;
+        return z*z_mult + z_addn;
 	}
 
 	//	This value of z will occur almost at the end of the default cycle. It's unlikely to be encountered
