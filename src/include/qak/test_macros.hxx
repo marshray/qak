@@ -29,11 +29,19 @@
 
 struct test_fail : std::logic_error
 {
-	test_fail() : logic_error("Test fail.") { }
+    test_fail() : logic_error("Test fail.") { }
 };
 
+namespace zz_int_qak_test_macros {
+    //? TODO QAK_noinline
+    void throw_test_fail()
+    {
+        throw test_fail();
+    }
+}
+
 //	Use this to fail a test with only a generic message.
-#define QAK_fail_test() do { throw test_fail(); } while (false)
+#define QAK_fail_test() do { zz_int_qak_test_macros::throw_test_fail(); } while (false)
 
 //	Check that the macro argument evaluates to true in boolean context.
 //#define QAK_verify(...) if (__VA_ARGS__) { } else QAK_fail_test()

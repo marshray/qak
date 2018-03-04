@@ -62,6 +62,5 @@
 
 #define QAK_alignof(a) ! ~ ! ~ use_QAK_alignof_x_or_QAK_alignof_t ~ ! ~ !
 
-
 //=====================================================================================================================|
 #endif // ndef QAK_WORKAROUNDS_ALIGNOF_OPERATOR_INCLUDED
