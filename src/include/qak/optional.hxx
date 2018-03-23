@@ -48,241 +48,240 @@ namespace qak { template <class T> using optional = std::optional<T>; }
 
 namespace qak { //=====================================================================================================|
 
-	template <class T> struct optional;
+    template <class T> struct optional;
 
-	template <class T, class U> struct optional_as_s
-	{
-		//static_assert(false, "this code should never be generated");
-	};
+    template <class T, class U> struct optional_as_s
+    {
+        //static_assert(false, "this code should never be generated");
+    };
 
-	//	Partial specialization for as<bool>
-	template <class T> struct optional_as_s<T, bool>
-	{
-		static bool f(optional<T> const & opt)
-		{
-			return !! reinterpret_cast<char const *>(&opt.stor_)[sizeof(T)];
-		}
-	};
+    //	Partial specialization for as<bool>
+    template <class T> struct optional_as_s<T, bool>
+    {
+        static bool f(optional<T> const & opt)
+        {
+            return !! reinterpret_cast<char const *>(&opt.stor_)[sizeof(T)];
+        }
+    };
 
-	template <class T>
-	struct optional
-	{
-		static_assert(!std::is_reference<T>::value, "qak::optional does not support reference types.");
+    template <class T>
+    struct optional
+    {
+        static_assert(!std::is_reference<T>::value, "qak::optional does not support reference types.");
 
-		//	Default ctor.
-		optional() QAK_noexcept
-		{
-			reinterpret_cast<char *>(&stor_)[sizeof(T)] = 0;
-		}
+        //	Default ctor.
+        optional() QAK_noexcept
+        {
+            reinterpret_cast<char *>(&stor_)[sizeof(T)] = 0;
+        }
 
-		//	Copy construction.
+        //	Copy construction.
 
-		optional(optional<T> const & that)
-		{
-			if (!that)
-			{
-				reinterpret_cast<char *>(&stor_)[sizeof(T)] = 0;
-			}
-			else
-			{
-				//new (&this->stor_) T(*that);
-				new (&this->stor_) T(*reinterpret_cast<T const *>(&that.stor_));
-				reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
-			}
-		}
+        optional(optional<T> const & that)
+        {
+            if (!that)
+            {
+                reinterpret_cast<char *>(&stor_)[sizeof(T)] = 0;
+            }
+            else
+            {
+                //new (&this->stor_) T(*that);
+                new (&this->stor_) T(*reinterpret_cast<T const *>(&that.stor_));
+                reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
+            }
+        }
 
-		template <class U>
-		optional(optional<U> const & that)
-		{
-			if (!that)
-			{
-				reinterpret_cast<char *>(&stor_)[sizeof(T)] = 0;
-			}
-			else
-			{
-				//new (&this->stor_) T(*that);
-				new (&this->stor_) T(*reinterpret_cast<U const *>(&that.stor_));
-				reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
-			}
-		}
+        template <class U>
+        optional(optional<U> const & that)
+        {
+            if (!that)
+            {
+                reinterpret_cast<char *>(&stor_)[sizeof(T)] = 0;
+            }
+            else
+            {
+                new (&this->stor_) T(*reinterpret_cast<U const *>(&that.stor_));
+                reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
+            }
+        }
 
-		//	Move construction.
+        //	Move construction.
 
-		optional(optional<T> && that)
-		{
-			if (!that)
-			{
-				reinterpret_cast<char *>(&stor_)[sizeof(T)] = 0;
-			}
-			else
-			{
-				new (&this->stor_) T(std::move(*reinterpret_cast<T *>(&that.stor_)));
-				reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
-				that.reset();
-			}
-		}
+        optional(optional<T> && that)
+        {
+            if (!that)
+            {
+                reinterpret_cast<char *>(&stor_)[sizeof(T)] = 0;
+            }
+            else
+            {
+                new (&this->stor_) T(std::move(*reinterpret_cast<T *>(&that.stor_)));
+                reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
+                that.reset();
+            }
+        }
 
-		//	Non-explicit value ctor.
-		optional(T const & val)
-		{
-			new (&this->stor_) T(val);
-			reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
-		}
+        //	Non-explicit value ctor.
+        optional(T const & val)
+        {
+            new (&this->stor_) T(val);
+            reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
+        }
 
-		//	Non-explicit move-from-value ctor.
-		optional(T && val)
-		{
-			new (&this->stor_) T(std::move(val));
-			reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
-		}
+        //	Non-explicit move-from-value ctor.
+        optional(T && val)
+        {
+            new (&this->stor_) T(std::move(val));
+            reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
+        }
 
-		//	Destruction.
+        //	Destruction.
 
-		~optional()
-		{
-			if (*this)
-				reinterpret_cast<T *>(&stor_)->~T();
-		}
+        ~optional()
+        {
+            if (*this)
+                reinterpret_cast<T *>(&stor_)->~T();
+        }
 
-		//	Copy assignment.
+        //	Copy assignment.
 
-		optional & operator = (optional<T> const & that)
-		{
-			if (this != &that)
-			{
-				optional<T> tmp(that);
-				this->swap(tmp);
-			}
-			return *this;
-		}
+        optional & operator = (optional<T> const & that)
+        {
+            if (this != &that)
+            {
+                optional<T> tmp(that);
+                this->swap(tmp);
+            }
+            return *this;
+        }
 
-		template <class U>
-		optional & operator = (optional<U> const & that)
-		{
-			if (this != &that)
-			{
-				this->reset();
-				if (that)
-				{
-					new (&this->stor_) T(*that);
-					reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
-				}
-			}
-			return *this;
-		}
+        template <class U>
+        optional & operator = (optional<U> const & that)
+        {
+            if (this != &that)
+            {
+                this->reset();
+                if (that)
+                {
+                    new (&this->stor_) T(*that);
+                    reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
+                }
+            }
+            return *this;
+        }
 
-		//	Move assignment.
+        //	Move assignment.
 
-		//?
+        //?
 
-		//	Assign oper from value.
-		template <class V>
-		optional & operator = (V const & val)
-		{
-			this->reset();
-			new (&this->stor_) T(val);
-			reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
-			return *this;
-		}
+        //	Assign oper from value.
+        template <class V>
+        optional & operator = (V const & val)
+        {
+            this->reset();
+            new (&this->stor_) T(val);
+            reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
+            return *this;
+        }
 
-		template <class V>
-		void assign(V const & val)
-		{
-			this->reset();
-			new (&this->stor_) T(val);
-			reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
-		}
+        template <class V>
+        void assign(V const & val)
+        {
+            this->reset();
+            new (&this->stor_) T(val);
+            reinterpret_cast<char *>(&stor_)[sizeof(T)] = 1;
+        }
 
-		//	Retrieve value (i.e., the bool indicating if nonempty)
+        //	Retrieve value (i.e., the bool indicating if nonempty)
 
-		template <class U> U    as() const { return optional_as_s<T, U>::f(*this); }
+        template <class U> U    as() const { return optional_as_s<T, U>::f(*this); }
 //		template <class U> U    as() const;
 //		template <>        bool as<bool>() const;
 
-		explicit operator bool() const
-		{
-			return this->as<bool>();
-		}
+        explicit operator bool() const
+        {
+            return this->as<bool>();
+        }
 
-		void reset()
-		{
-			if (*this)
-			{
-				reinterpret_cast<T *>(&stor_)->~T();
-				reinterpret_cast<char *>(&stor_)[sizeof(T)] = 0;
-			}
-		}
+        void reset()
+        {
+            if (*this)
+            {
+                reinterpret_cast<T *>(&stor_)->~T();
+                reinterpret_cast<char *>(&stor_)[sizeof(T)] = 0;
+            }
+        }
 
-		T const & operator * () const
-		{
-			assert(*this);
-			//if (!*this) throw 0;
-			return *reinterpret_cast<T const *>(&stor_);
-		}
+        T const & operator * () const
+        {
+            assert(*this);
+            //if (!*this) throw 0;
+            return *reinterpret_cast<T const *>(&stor_);
+        }
 
-		T & operator * ()
-		{
-			assert(*this);
-			//if (!*this) throw 0;
-			return *reinterpret_cast<T *>(&stor_);
-		}
+        T & operator * ()
+        {
+            assert(*this);
+            //if (!*this) throw 0;
+            return *reinterpret_cast<T *>(&stor_);
+        }
 
-		T const * operator -> () const
-		{
-			assert(*this);
-			//if (!*this) throw 0;
-			return reinterpret_cast<T const *>(&stor_);
-		}
+        T const * operator -> () const
+        {
+            assert(*this);
+            //if (!*this) throw 0;
+            return reinterpret_cast<T const *>(&stor_);
+        }
 
-		T * operator -> ()
-		{
-			assert(*this);
-			//if (!*this) throw 0;
-			return reinterpret_cast<T *>(&stor_);
-		}
+        T * operator -> ()
+        {
+            assert(*this);
+            //if (!*this) throw 0;
+            return reinterpret_cast<T *>(&stor_);
+        }
 
-		void swap(optional<T> & that)
-		{
-			//? if T is pod, this could perhaps be much simpler.
+        void swap(optional<T> & that)
+        {
+            //? if T is pod, this could perhaps be much simpler.
 
-			if (*this)
-			{
-				if (that) // this and that
-				{
-					std::swap<T>(*reinterpret_cast<T *>(&this->stor_), *reinterpret_cast<T *>(&that.stor_));
-				}
-				else // this but no that
-				{
-					new (&that.stor_) T(std::move(*reinterpret_cast<T *>(&stor_)));
-					reinterpret_cast<char *>(&that.stor_)[sizeof(T)] = 1;
-					this->reset();
-				}
-			}
-			else
-			{
-				if (that) // that but no this
-				{
-					new (&this->stor_) T(std::move(*reinterpret_cast<T *>(&that.stor_)));
-					reinterpret_cast<char *>(&this->stor_)[sizeof(T)] = 1;
-					that.reset();
-				}
-				// else no this, no that, do nothing.
-			}
-		}
+            if (*this)
+            {
+                if (that) // this and that
+                {
+                    std::swap<T>(*reinterpret_cast<T *>(&this->stor_), *reinterpret_cast<T *>(&that.stor_));
+                }
+                else // this but no that
+                {
+                    new (&that.stor_) T(std::move(*reinterpret_cast<T *>(&stor_)));
+                    reinterpret_cast<char *>(&that.stor_)[sizeof(T)] = 1;
+                    this->reset();
+                }
+            }
+            else
+            {
+                if (that) // that but no this
+                {
+                    new (&this->stor_) T(std::move(*reinterpret_cast<T *>(&that.stor_)));
+                    reinterpret_cast<char *>(&this->stor_)[sizeof(T)] = 1;
+                    that.reset();
+                }
+                // else no this, no that, do nothing.
+            }
+        }
 
-	private:
-		template <class U_, class T_> friend struct optional_as_s;
+    private:
+        template <class U_, class T_> friend struct optional_as_s;
 
-		typedef typename std::aligned_storage<
-				sizeof(T) + 1,
-				qak::alignof_t<T>::value
-			>::type stor_t;
+        typedef typename std::aligned_storage<
+                sizeof(T) + 1,
+                qak::alignof_t<T>::value
+            >::type stor_t;
 
-		static_assert(sizeof(T) + 1 <= sizeof(stor_t));
-		static_assert(qak::alignof_t<T>::value <= qak::alignof_t<stor_t>::value);
+        static_assert(sizeof(T) + 1 <= sizeof(stor_t));
+        static_assert(qak::alignof_t<T>::value <= qak::alignof_t<stor_t>::value);
 
-		stor_t stor_;
-	};
+        stor_t stor_;
+    };
 
 //	template <class T>
 //	template <>
@@ -290,26 +289,26 @@ namespace qak { //==============================================================
 //		static bool f(optional<T> const & self) { return reinterpret_cast<char const *>(&self.stor_)[sizeof(T)]; }
 //	};
 
-	template <class T> inline
-	T const & get_or_else(optional<T> const & op, T const & dflt) { return op ? *op : dflt; }
+    template <class T> inline
+    T const & get_or_else(optional<T> const & op, T const & dflt) { return op ? *op : dflt; }
 
-	template <class T> inline
-		T const & get_or_fail(optional<T> const & op)
-	{
-		qak::fail_unless(op);
-		return *op;
-	}
+    template <class T> inline
+        T const & get_or_fail(optional<T> const & op)
+    {
+        qak::fail_unless(op);
+        return *op;
+    }
 
 } // namespace qak ====================================================================================================|
 namespace std {
 
-	//	Enable std::swap for optional.
-	//
-	template <class T>
-	inline void swap(qak::optional<T> & a, qak::optional<T> & b)
-	{
-		a.swap(b);
-	}
+    //	Enable std::swap for optional.
+    //
+    template <class T>
+    inline void swap(qak::optional<T> & a, qak::optional<T> & b)
+    {
+        a.swap(b);
+    }
 
 } // namespace std ====================================================================================================|
 

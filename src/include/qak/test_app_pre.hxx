@@ -30,62 +30,71 @@
 
 //=====================================================================================================================|
 
-	//	We don't actually put the internal test base class in the namespace because the user test function is of a
-	//	class derived from it and so it would just drag the internal namespace into scope for all those name lookups
-	//	anyway.
-	struct qak_test_base_;
+    //	We don't actually put the internal test base class in the namespace because the user test function is of a
+    //	class derived from it and so it would just drag the internal namespace into scope for all those name lookups
+    //	anyway.
+    struct qak_test_base_;
 
 namespace qak_test_ {
 
-	qak_test_base_ * g_p_tests = 0; // global var
+    qak_test_base_ * g_p_tests = 0; // global var
 
 } // namespace qak_test_
 
-	struct qak_test_base_
-	{
-		qak_test_base_ * cdr_;
-		unsigned line_num_;
-		char const * test_id_;
-		char const * test_description_;
-		qak::prng64 prng_;
+    struct qak_test_base_
+    {
+        qak_test_base_ * cdr_;
+        unsigned line_num_;
+        char const * test_id_;
+        bool skip_;
+        char const * test_description_;
+        qak::prng64 prng_;
 
-		qak_test_base_(
-			unsigned line_num,
-			char const * test_id,
-			char const * test_description
-		) :
-			cdr_(qak_test_::g_p_tests),
-			line_num_(line_num),
-			test_id_(test_id),
-			test_description_(test_description)
-		{
-			qak_test_::g_p_tests = this;
-		}
+        qak_test_base_(
+            unsigned line_num,
+            char const * test_id,
+            bool skip,
+            char const * test_description = 0
+        ) :
+            cdr_(qak_test_::g_p_tests),
+            line_num_(line_num),
+            test_id_(test_id),
+            skip_(skip),
+            test_description_(test_description)
+        {
+            qak_test_::g_p_tests = this;
+        }
 
-		virtual void test_fn() = 0;
-	};
+        virtual void test_fn() = 0;
+    };
 
 //=====================================================================================================================|
 //
 //	Implementation stuff.
 
-#define QAKtest_IMP_(ID, ...) QAKtest_IMP2_(QAK_PASTE(test_, QAK_PASTE(ID, QAK_PASTE(_, __LINE__))), ID, __VA_ARGS__)
-#define QAKtest_IMP2_(TYPE_NAME, ID, ...)                           \
-struct TYPE_NAME : qak_test_base_                                   \
-{                                                                   \
-   TYPE_NAME() : qak_test_base_(__LINE__, #ID, "" __VA_ARGS__) { }  \
-   virtual void test_fn();                                          \
-};                                                                  \
-TYPE_NAME QAK_PASTE(g_, QAK_PASTE(TYPE_NAME, _inst));               \
+#define QAKtest_IMP_(ID, skip, ...) QAKtest_IMP2_(                                                   \
+                                            QAK_PASTE(test_, QAK_PASTE(ID, QAK_PASTE(_, __LINE__))), \
+                                            ID, skip, __VA_ARGS__)
+#define QAKtest_IMP2_(TYPE_NAME, ID, skip, ...)                                                      \
+struct TYPE_NAME : qak_test_base_                                                                    \
+{                                                                                                    \
+   TYPE_NAME() : qak_test_base_(__LINE__, #ID, skip, "" __VA_ARGS__) { }                             \
+   virtual void test_fn();                                                                           \
+};                                                                                                   \
+TYPE_NAME QAK_PASTE(g_, QAK_PASTE(TYPE_NAME, _inst));                                                \
 void TYPE_NAME::test_fn()
 
 //=====================================================================================================================|
 
 //	Define a new test, giving an identifier and optionally a description.
-#define QAKtest(ID, ...) QAKtest_IMP_(ID, __VA_ARGS__)
+#define QAKtest(ID, ...) QAKtest_IMP_(ID, false, __VA_ARGS__)
 
+#define QAKtest_anon() QAKtest_IMP_(anon, false)
 //	Define a new test, using an auto-generated identifier.
-#define QAKtest_anon() QAKtest_IMP_(anon)
+
+//	Skip the test.
+#define QAKtest_skip(ID, ...) QAKtest_IMP_(ID, true, __VA_ARGS__)
+#define QAKtest_skip_anon() QAKtest_IMP_(anon, true)
 
 //=====================================================================================================================|
 #endif // ndef qak_test_app_pre_hxx_INCLUDED_

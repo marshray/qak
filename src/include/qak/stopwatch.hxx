@@ -27,43 +27,39 @@
 
 namespace qak { //=====================================================================================================|
 
-	struct stopwatch
-	{
-		//	Default constructor. Starts accumulating new time by default.
-		explicit stopwatch(bool stopped = false, time_source timesrc = time_source::wallclock_ns);
+    struct stopwatch
+    {
+        //	Default constructor. Starts accumulating new time by default.
+        explicit stopwatch(bool stopped = false, time_source timesrc = time_source::wallclock_ns);
 
-		//	Gets the current stopped/running state.
-		bool is_running() const { return !stopped; }
-		bool is_stopped() const { return stopped; }
+        //	Gets the current stopped/running state.
+        bool is_running() const { return !stopped; }
+        bool is_stopped() const { return stopped; }
 
-		//	Gets the current stopwatch time.
-		int64_t elapsed_ns() const;
-		double elapsed_s() const;
+        //	Gets the current stopwatch time.
+        int64_t elapsed_ns() const;
+        double elapsed_s() const;
 
-		//	Stops the accumulation of time, but preserves the current amount. Returns the elapsed_s.
-		double stop();
+        //	Stops the accumulation of time, but preserves the current amount. Returns the elapsed_s.
+        double stop();
 
-		//	Starts or resumes the accumulation of time.
-		void start();
+        //	Starts or resumes the accumulation of time.
+        void start();
 
-		//	Starts the accumulation of time over from 0 or the specified nanoseconds (which should be nonnegative).
-		void restart(int64_t ns = 0);
+        //	Starts the accumulation of time over from 0 or the specified nanoseconds (which should be nonnegative).
+        void restart(int64_t ns = 0);
 
-		//	Just puts the accumulated time back to 0.0, but doesn't change the stopped/started state.
-		//	Returns the amount removed from the stopwatch.
-		double reset();
+        //	Puts the accumulated time back to 0.0, but doesn't change the stopped/started state.
+        //	Returns the amount (in s) removed from the stopwatch.
+        double reset();
 
-	private:
+    private:
 
-		bool stopped;
-		time_source timesrc;
-		int64_t accum_ns;
-		uint64_t started_ns;
-	};
-
-	//=================================================================================================================|
-
-	//-----------------------------------------------------------------------------------------------------------------|
+        bool stopped;
+        time_source timesrc;
+        int64_t accum_ns;
+        uint64_t started_ns;
+    };
 
 } // namespace qak ====================================================================================================|
 #endif // ndef qak_stopwatch_hxx_INCLUDED_
