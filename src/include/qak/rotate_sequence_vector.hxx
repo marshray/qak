@@ -26,26 +26,24 @@
 
 namespace qak { //=====================================================================================================|
 
-	template <class T> inline
-	void rotate_sequence(
-		vector<T> & v,
-		typename vector<T>::size_type b_ix,
-		typename vector<T>::size_type m_ix,
-		typename vector<T>::size_type e_ix )
-	{
-		typedef vector<T> vector_type;
+    template <class T> inline
+    void rotate_sequence(
+        vector<T> & v,
+        typename vector<T>::size_type b_ix,
+        typename vector<T>::size_type m_ix,
+        typename vector<T>::size_type e_ix )
+    {
+        assert(b_ix <= m_ix && m_ix <= e_ix && e_ix <= v.size());
 
-		assert(b_ix <= m_ix && m_ix <= e_ix && e_ix <= v.size());
-
-		if (b_ix != m_ix && m_ix != e_ix)
-		{
-			T * p_0 = &v[0];
-			T * p_b = p_0 + b_ix;
-			T * p_m = p_0 + m_ix;
-			T * p_e = p_0 + e_ix;
-			rotate_sequence<T>(p_b, p_m, p_e);
-		}
-	}
+        if (b_ix != m_ix && m_ix != e_ix)
+        {
+            T * p_0 = &v[0];
+            T * p_b = p_0 + b_ix;
+            T * p_m = p_0 + m_ix;
+            T * p_e = p_0 + e_ix;
+            rotate_sequence<T>(p_b, p_m, p_e);
+        }
+    }
 
 #	define QAK_rotate_sequence_vector_DEFINED_ 1
 

@@ -26,7 +26,7 @@
 
 #include "qak/config.hxx"
 
-#if QAK_CXX_LIB_IS_MSVCPPRT
+#if QAK_CXX_LIB_IS_MSVCPPRT or QAK_CXX_LIB_IS_GNU_LIBSTDCXX
 #   define QAK_OPTIONAL_USE_STD 1
 #endif
 

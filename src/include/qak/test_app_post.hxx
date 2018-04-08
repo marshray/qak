@@ -85,6 +85,7 @@ namespace qak_test_ {
 
         unsigned cnt_passed = 0;
         unsigned cnt_failed = 0;
+        unsigned cnt_skipped = 0;
         for (;;)
         {
             auto ptest = p_test_sorted;
@@ -97,6 +98,7 @@ namespace qak_test_ {
 
             if (test.skip_)
             {
+                ++cnt_skipped;
                 if (32 <= verbosity)
                 {
                     std::fputs("=========== ....skipping.... =========== ", stderr);
@@ -155,10 +157,11 @@ namespace qak_test_ {
 
         std::fprintf(stderr,
             "========================================\n"
-            "passed: %6d\n"
-            "failed: %6d\n"
-            "total:  %6d\n",
-            cnt_passed, cnt_failed, cnt_passed + cnt_failed);
+            "passed:  %6d\n"
+            "failed:  %6d\n"
+            "skipped: %6d\n"
+            "total:   %6d\n",
+            cnt_passed, cnt_failed, cnt_skipped, cnt_passed + cnt_failed);
 
         if (cnt_failed)
             std::fputs("Some tests failed.\n", stderr);

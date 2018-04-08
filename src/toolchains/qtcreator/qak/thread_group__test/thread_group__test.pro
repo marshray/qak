@@ -1,4 +1,14 @@
 
+CONFIG -= app_bundle
+CONFIG -= qt
+CONFIG += thread
+
+#CONFIG += c++17
+*-g++* {
+    QMAKE_CXXFLAGS += -std=c++17
+    QMAKE_CXXFLAGS += -Wno-dangling-else
+}
+
 SOURCES += \
     ../../../../libqak/thread_group__test.cxx
 

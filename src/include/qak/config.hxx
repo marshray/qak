@@ -28,17 +28,17 @@
 
 #if defined(__clang_version__)
 
-	//	The compiler is clang++
+    //	The compiler is clang++
 #	define QAK_CLANG 1
 
 #elif defined(__GNUC__)
 
-	//	The compiler is or pretends to be GNU g++
+    //	The compiler is or pretends to be GNU g++
 #	define QAK_GNUC 1
 
 #elif defined(_MSC_VER)
 
-	//	The compiler is or pretends to be MSVC.
+    //	The compiler is or pretends to be MSVC.
 #	define QAK_MSC 1
 
 #else
@@ -92,7 +92,7 @@
 //
 #if defined(QAK_LINUX)
 
-	//	Linux has POSIX and pthreads.
+    //	Linux has POSIX and pthreads.
 #	define QAK_API_POSIX 1
 #	define QAK_API_PTHREAD 1
 
@@ -100,7 +100,7 @@
 
 #	define QAK_API_WIN32 1
 
-	//	MS Windows has the basic Win32 APIs, at least at run time.
+    //	MS Windows has the basic Win32 APIs, at least at run time.
 #	define QAK_API_WIN32 1
 #	define QAK_LINK_WIN32_KERNEL32 1
 #	define QAK_LINK_WIN32_USER32 1
@@ -186,7 +186,7 @@ static_assert(QAK_pointer_bits == sizeof(void *)*8, "Confused about pointer size
 
 #if QAK_CPU_x64 || QAK_CPU_x86
 
-	//	The CPU has an RDTSC instruction which may read a TSC.
+    //	The CPU has an RDTSC instruction which may read a TSC.
 #	define QAK_CPU_HAS_RDTSC 1
 
 #endif
@@ -197,20 +197,20 @@ static_assert(QAK_pointer_bits == sizeof(void *)*8, "Confused about pointer size
 
 #if QAK_CLANG // ================================ clang++
 
-	//	The alignment of std::atomic<char>
+    //	The alignment of std::atomic<char>
 #	define QAK_MINIMUM_ATOMIC_ALIGNMENT 1
 
-	//	We have inline assembler like gcc's format.
+    //	We have inline assembler like gcc's format.
 #	define QAK_INLINEASM_GCC 1
 
-	//	We have exact-width integral types of 128 bits
+    //	We have exact-width integral types of 128 bits
 #	define  QAK_INT128_TYPE          __int128
 #	define QAK_UINT128_TYPE unsigned __int128
 
-	//	We have the __sync_synchronize() intrinsic.
+    //	We have the __sync_synchronize() intrinsic.
 #	define QAK_HAS_GNUC_sync_synchronize 1
 
-	//	We have the MEM_FULL_BARRIER() intrinsic.
+    //	We have the MEM_FULL_BARRIER() intrinsic.
 #	define QAK_HAS_GNUC_MEM_FULL_BARRIER 1
 
 #undef QAK_COMPILER_FAILS_EXPLICIT_CONVERSIONS
@@ -223,20 +223,20 @@ static_assert(QAK_pointer_bits == sizeof(void *)*8, "Confused about pointer size
 
 #elif defined(QAK_GNUC) // ================================ gcc
 
-	//	The alignment of std::atomic<char>
+    //	The alignment of std::atomic<char>
 #	define QAK_MINIMUM_ATOMIC_ALIGNMENT 1
 
-	//	We have inline assembler like gcc's format.
+    //	We have inline assembler like gcc's format.
 #	define QAK_INLINEASM_GCC 1
 
-	//	We have exact-width integral types of 128 bits
+    //	We have exact-width integral types of 128 bits
 #	define  QAK_INT128_TYPE          __int128
 #	define QAK_UINT128_TYPE unsigned __int128
 
-	//	We have the __sync_synchronize() intrinsic.
+    //	We have the __sync_synchronize() intrinsic.
 #	define QAK_HAS_GNUC_sync_synchronize 1
 
-	//	We have the MEM_FULL_BARRIER() intrinsic.
+    //	We have the MEM_FULL_BARRIER() intrinsic.
 #	define QAK_HAS_GNUC_MEM_FULL_BARRIER 1
 
 #define QAK_COMPILER_FAILS_EXPLICIT_CONVERSIONS 1
@@ -268,9 +268,11 @@ static_assert(QAK_pointer_bits == sizeof(void *)*8, "Confused about pointer size
 #		endif
 #	endif
 
+#define QAK_unused(param) do { (void)(param); } while (false)
+
 #elif defined(QAK_MSC) // ================================ MSVC
 
-	//	The alignment of std::atomic<char>
+    //	The alignment of std::atomic<char>
 #	define QAK_MINIMUM_ATOMIC_ALIGNMENT 4
 
 #	if defined(_WIN64)
@@ -280,6 +282,9 @@ static_assert(QAK_pointer_bits == sizeof(void *)*8, "Confused about pointer size
 #	endif
 
 #define QAK_noexcept noexcept
+
+//?
+#define QAK_unuparam
 
 #endif // of defined(QAK_MSC)
 

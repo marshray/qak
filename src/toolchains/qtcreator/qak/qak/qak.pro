@@ -4,10 +4,17 @@
 #
 #-------------------------------------------------
 
-QT       -= core gui
-
 TARGET = qak
 TEMPLATE = lib
+CONFIG -= app_bundle
+CONFIG -= qt
+CONFIG += thread
+
+#CONFIG += c++17
+*-g++* {
+    QMAKE_CXXFLAGS += -std=c++17
+    QMAKE_CXXFLAGS += -Wno-dangling-else
+}
 
 DEFINES += QAK_LIBRARY
 
@@ -81,8 +88,5 @@ unix {
     INSTALLS += target
 }
 
-*-g++* {
-    QMAKE_CXXFLAGS += -std=c++17
-}
 
 INCLUDEPATH += $$PWD/../../../../include

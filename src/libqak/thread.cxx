@@ -384,6 +384,8 @@ namespace qak { //==============================================================
 
 #if QAK_THREAD_PTHREAD
 
+        QAK_unused(opt_timeout_ns);
+
         // Pthreads has no join timeout. :-P
         // So probably we need to arrange for the thread to hold a lock on a mutex on which we can wait.
         qak::fail_todo(); // port me
@@ -751,7 +753,7 @@ namespace qak { //==============================================================
                 {
                 case EINTR:
                     requested = remaining;
-                    remaining = { 0 };
+                    remaining = { 0, 0 };
                     continue;
                 default:
                     qak::fail();
@@ -789,8 +791,6 @@ namespace qak { //==============================================================
 
     void thread::set_cpu_affinity(unsigned cpu_ix)
     {
-        thread_imp const * imp_this = static_cast<thread_imp const *>(this);
-
         unsigned cnt_avail = host_info::cnt_cpus_available();
         qak::fail_unless(cnt_avail);
 
@@ -818,6 +818,8 @@ namespace qak { //==============================================================
         assert(!err); //? better error checking?
 
 #elif QAK_API_WIN32
+
+        thread_imp const * imp_this = static_cast<thread_imp const *>(this);
 
         win32::DWORD_PTR processMask = 0;
         win32::DWORD_PTR systemMask = 0;

@@ -26,23 +26,23 @@
 
 namespace zzz { //=====================================================================================================|
 
-	QAKtest_anon()
-	{
-		unsigned u = qak::host_info::cnt_cpus_configured();
-		QAK_verify( 0 < u && u < 1*1000*1000 );
-	}
+    QAKtest(cnt_cpus_configured)
+    {
+        unsigned u = qak::host_info::cnt_cpus_configured();
+        QAK_verify( 0 < u && u < 1*1000*1000 );
+    }
 
-	QAKtest_anon()
-	{
-		unsigned u = qak::host_info::cnt_cpus_available();
-		QAK_verify( 0 < u && u < 1*1000*1000 );
-	}
+    QAKtest(cnt_cpus_available)
+    {
+        unsigned u = qak::host_info::cnt_cpus_available();
+        QAK_verify( 0 < u && u < 1*1000*1000 );
+    }
 
-	QAKtest_anon()
-	{
-		unsigned u = qak::host_info::cnt_threads_recommended();
-		QAK_verify( 0 < u && u < 1*1000*1000 );
-	}
+    QAKtest(cnt_threads_recommended)
+    {
+        unsigned u = qak::host_info::cnt_threads_recommended();
+        QAK_verify( 0 < u && u < 1*1000*1000 );
+    }
 
 } // namespace zzz ====================================================================================================|
 #include "qak/test_app_post.hxx"
